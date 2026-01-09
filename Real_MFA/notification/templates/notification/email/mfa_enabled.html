@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .success-box { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ddd; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .info-label { font-weight: bold; color: #11998e; }
+        .button { display: inline-block; background: #11998e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .badge { background: #28a745; color: white; padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✅ Multi-Factor Authentication Enabled</h1>
+    </div>
+    <div class="content">
+        <p>Hello {{ user.first_name|default:user.username }},</p>
+        
+        <div class="success-box">
+            <strong>🎉 Great news!</strong><br>
+            Two-factor authentication (2FA) has been successfully enabled on your account.
+        </div>
+        
+        <div class="info-box">
+            <h3>MFA Details:</h3>
+            <div class="info-row">
+                <span class="info-label">Method:</span>
+                <span><span class="badge">{{ mfa_method }}</span></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Enabled On:</span>
+                <span>{{ enabled_time|date:"F d, Y g:i A" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Device:</span>
+                <span>{{ device_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">IP Address:</span>
+                <span>{{ ip_address }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Location:</span>
+                <span>{{ location }}</span>
+            </div>
+        </div>
+        
+        <h3>🔒 Your Account is Now More Secure</h3>
+        <p>With 2FA enabled, you'll need to provide two forms of identification to access your account:</p>
+        <ol>
+            <li>Your password</li>
+            <li>A verification code from your {{ mfa_method }}</li>
+        </ol>
+        
+        <h3>💡 Important Reminders:</h3>
+        <ul>
+            <li><strong>Backup Codes:</strong> Save your backup codes in a secure location. You'll need them if you lose access to your 2FA device.</li>
+            <li><strong>Recovery Options:</strong> Make sure your recovery email and phone number are up to date.</li>
+            <li><strong>Multiple Methods:</strong> Consider adding additional 2FA methods for redundancy.</li>
+        </ul>
+        
+        <p><strong>Didn't enable 2FA?</strong></p>
+        <p>If you didn't make this change, your account may be compromised. Please contact support immediately.</p>
+        
+        <a href="{{ site_url }}/account/security" class="button">Manage Security Settings</a>
+        
+        <div class="footer">
+            <p>This is an automated security notification from {{ site_name }}</p>
+            <p>Questions? Contact our support team anytime.</p>
+        </div>
+    </div>
+</body>
+</html>

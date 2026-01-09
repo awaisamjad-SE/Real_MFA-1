@@ -1,0 +1,3492 @@
+{
+  "info": {
+    "_postman_id": "real-mfa-api-complete",
+    "name": "Real_MFA API Complete - All Scenarios",
+    "description": "Complete API collection for Real_MFA authentication system covering ALL scenarios: success, failures, MFA flows, device verification, rate limits, and edge cases.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "device_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fingerprint_hash",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reset_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "totp_secret",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_email",
+      "value": "testuser@example.com",
+      "type": "string"
+    },
+    {
+      "key": "test_username",
+      "value": "testuser",
+      "type": "string"
+    },
+    {
+      "key": "test_password",
+      "value": "TestPassword123!",
+      "type": "string"
+    },
+    {
+      "key": "device_fingerprint",
+      "value": "postman-test-device-fingerprint-12345",
+      "type": "string"
+    },
+    {
+      "key": "backup_code",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "pm.request.headers.add({",
+          "    key: 'X-Device-Fingerprint',",
+          "    value: pm.collectionVariables.get('device_fingerprint')",
+          "});",
+          "pm.request.headers.add({",
+          "    key: 'User-Agent',",
+          "    value: 'PostmanRuntime/Automated-Tests'",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log('Response Time: ' + pm.response.responseTime + 'ms');",
+          "pm.test('No server error', function() {",
+          "    pm.expect(pm.response.code).to.be.below(500);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "description": "All authentication scenarios: registration, login (success/failure), MFA verification, logout",
+      "item": [
+        {
+          "name": "1.1 Registration",
+          "description": "User registration scenarios",
+          "item": [
+            {
+              "name": "✅ Register - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\",\n    \"password2\": \"{{test_password}}\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"device\": {\n        \"fingerprint_hash\": \"{{device_fingerprint}}\",\n        \"device_type\": \"desktop\",\n        \"browser\": \"Postman\",\n        \"os\": \"Windows\"\n    }\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/register/", "host": ["{{base_url}}"], "path": ["api", "auth", "register", ""]},
+                "description": "Successful registration. Returns 201 with user data."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 201 Created', function() {",
+                      "    pm.expect(pm.response.code).to.eql(201);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.test('Has user ID', function() {",
+                      "        pm.expect(jsonData.id).to.exist;",
+                      "    });",
+                      "    pm.test('Email matches', function() {",
+                      "        pm.expect(jsonData.email).to.eql(pm.collectionVariables.get('test_email'));",
+                      "    });",
+                      "    pm.collectionVariables.set('user_id', jsonData.id);",
+                      "    if (jsonData.device_id) {",
+                      "        pm.collectionVariables.set('device_id', jsonData.device_id);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Register - Duplicate Email",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"username\": \"differentuser\",\n    \"password\": \"{{test_password}}\",\n    \"password2\": \"{{test_password}}\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/register/", "host": ["{{base_url}}"], "path": ["api", "auth", "register", ""]},
+                "description": "Attempt to register with existing email. Should return 400 with validation error."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "pm.test('Has email error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.email || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Register - Weak Password",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"newuser@example.com\",\n    \"username\": \"newuser\",\n    \"password\": \"123\",\n    \"password2\": \"123\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/register/", "host": ["{{base_url}}"], "path": ["api", "auth", "register", ""]},
+                "description": "Weak password should be rejected. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "pm.test('Has password validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.password || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Register - Password Mismatch",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"mismatch@example.com\",\n    \"username\": \"mismatchuser\",\n    \"password\": \"TestPassword123!\",\n    \"password2\": \"DifferentPassword456!\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/register/", "host": ["{{base_url}}"], "path": ["api", "auth", "register", ""]},
+                "description": "Password and confirm password don't match. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "pm.test('Has password mismatch error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.password2 || jsonData.error || jsonData.non_field_errors).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Register - Missing Required Fields",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"incomplete@example.com\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/register/", "host": ["{{base_url}}"], "path": ["api", "auth", "register", ""]},
+                "description": "Missing required fields. Returns 400 with validation errors."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "pm.test('Has validation errors', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.username || jsonData.password).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "1.2 Login",
+          "description": "Login scenarios including success, failure, MFA, and device verification",
+          "item": [
+            {
+              "name": "✅ Login - Success (Trusted Device, No MFA)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"identifier\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_fingerprint\": \"{{device_fingerprint}}\",\n    \"device_name\": \"Postman Test Client\",\n    \"device_type\": \"desktop\",\n    \"browser\": \"Postman\",\n    \"os\": \"Windows\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/login/", "host": ["{{base_url}}"], "path": ["api", "auth", "login", ""]},
+                "description": "Successful login with trusted device and no MFA. Returns 200 with tokens."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "var jsonData = pm.response.json();",
+                      "",
+                      "pm.test('Login successful (200 or 202)', function() {",
+                      "    pm.expect([200, 202]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test('Status is success', function() {",
+                      "        pm.expect(jsonData.status).to.eql('success');",
+                      "    });",
+                      "    pm.test('Has tokens', function() {",
+                      "        pm.expect(jsonData.tokens).to.exist;",
+                      "        pm.expect(jsonData.tokens.access).to.exist;",
+                      "        pm.expect(jsonData.tokens.refresh).to.exist;",
+                      "    });",
+                      "    pm.collectionVariables.set('access_token', jsonData.tokens.access);",
+                      "    pm.collectionVariables.set('refresh_token', jsonData.tokens.refresh);",
+                      "    if (jsonData.user) pm.collectionVariables.set('user_id', jsonData.user.id);",
+                      "    if (jsonData.device) pm.collectionVariables.set('device_id', jsonData.device.id);",
+                      "}",
+                      "",
+                      "if (pm.response.code === 202) {",
+                      "    pm.test('Requires additional verification', function() {",
+                      "        pm.expect(['mfa_required', 'device_verification_required']).to.include(jsonData.status);",
+                      "    });",
+                      "    if (jsonData.user_id) pm.collectionVariables.set('user_id', jsonData.user_id);",
+                      "    if (jsonData.fingerprint_hash) pm.collectionVariables.set('fingerprint_hash', jsonData.fingerprint_hash);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚠️ Login - MFA Required (202)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"identifier\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_fingerprint\": \"mfa-enabled-device-{{$timestamp}}\",\n    \"device_name\": \"MFA Device\",\n    \"device_type\": \"desktop\",\n    \"browser\": \"Postman\",\n    \"os\": \"Windows\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/login/", "host": ["{{base_url}}"], "path": ["api", "auth", "login", ""]},
+                "description": "Login when MFA is enabled. Returns 202 with mfa_required status. Note: This scenario requires MFA to be enabled on the account first."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "var jsonData = pm.response.json();",
+                      "",
+                      "if (pm.response.code === 202) {",
+                      "    pm.test('Status is 202 Accepted', function() {",
+                      "        pm.expect(pm.response.code).to.eql(202);",
+                      "    });",
+                      "    pm.test('Status is mfa_required', function() {",
+                      "        pm.expect(jsonData.status).to.eql('mfa_required');",
+                      "    });",
+                      "    pm.test('Has user_id', function() {",
+                      "        pm.expect(jsonData.user_id).to.exist;",
+                      "    });",
+                      "    pm.test('Has fingerprint_hash', function() {",
+                      "        pm.expect(jsonData.fingerprint_hash).to.exist;",
+                      "    });",
+                      "    pm.collectionVariables.set('user_id', jsonData.user_id);",
+                      "    pm.collectionVariables.set('fingerprint_hash', jsonData.fingerprint_hash);",
+                      "} else if (pm.response.code === 200) {",
+                      "    console.log('MFA not enabled - login succeeded directly');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚠️ Login - Device Verification Required (202)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"identifier\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_fingerprint\": \"new-device-{{$timestamp}}\",\n    \"device_name\": \"New Unknown Device\",\n    \"device_type\": \"mobile\",\n    \"browser\": \"Chrome\",\n    \"os\": \"Android\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/login/", "host": ["{{base_url}}"], "path": ["api", "auth", "login", ""]},
+                "description": "Login from new/unknown device. Returns 202 with device_verification_required status. OTP will be sent to email."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 202 Accepted', function() {",
+                      "    pm.expect(pm.response.code).to.eql(202);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Status is device_verification_required', function() {",
+                      "    pm.expect(jsonData.status).to.eql('device_verification_required');",
+                      "});",
+                      "",
+                      "pm.test('Has user_id', function() {",
+                      "    pm.expect(jsonData.user_id).to.exist;",
+                      "});",
+                      "",
+                      "if (jsonData.user_id) pm.collectionVariables.set('user_id', jsonData.user_id);",
+                      "if (jsonData.fingerprint_hash) pm.collectionVariables.set('fingerprint_hash', jsonData.fingerprint_hash);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Login - Invalid Credentials",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"identifier\": \"{{test_email}}\",\n    \"password\": \"WrongPassword123!\",\n    \"device_fingerprint\": \"{{device_fingerprint}}\",\n    \"device_name\": \"Postman\",\n    \"device_type\": \"desktop\",\n    \"browser\": \"Postman\",\n    \"os\": \"Windows\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/login/", "host": ["{{base_url}}"], "path": ["api", "auth", "login", ""]},
+                "description": "Login with wrong password. Returns 400 with error message."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.detail || jsonData.non_field_errors).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Login - User Not Found",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"identifier\": \"nonexistent@example.com\",\n    \"password\": \"{{test_password}}\",\n    \"device_fingerprint\": \"{{device_fingerprint}}\",\n    \"device_name\": \"Postman\",\n    \"device_type\": \"desktop\",\n    \"browser\": \"Postman\",\n    \"os\": \"Windows\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/login/", "host": ["{{base_url}}"], "path": ["api", "auth", "login", ""]},
+                "description": "Login with non-existent email. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.detail || jsonData.non_field_errors).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Login - Missing Device Info",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"identifier\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/login/", "host": ["{{base_url}}"], "path": ["api", "auth", "login", ""]},
+                "description": "Login without device information. May return 400 if device tracking is required."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 202, 400]);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 400) {",
+                      "    pm.test('Has validation error', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.device_fingerprint).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "1.3 MFA Verification",
+          "description": "MFA verification scenarios after login",
+          "item": [
+            {
+              "name": "✅ Verify MFA - Success with TOTP",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"fingerprint_hash\": \"{{fingerprint_hash}}\",\n    \"totp_code\": \"123456\",\n    \"trust_device\": true,\n    \"trust_days\": 30\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/verify-mfa/", "host": ["{{base_url}}"], "path": ["api", "auth", "verify-mfa", ""]},
+                "description": "Verify MFA with TOTP code. Returns 200 with tokens. Note: You need actual TOTP code from authenticator app."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.test('Status is success', function() {",
+                      "        pm.expect(jsonData.status).to.eql('success');",
+                      "    });",
+                      "    pm.test('Has tokens', function() {",
+                      "        pm.expect(jsonData.tokens).to.exist;",
+                      "        pm.expect(jsonData.tokens.access).to.exist;",
+                      "    });",
+                      "    pm.collectionVariables.set('access_token', jsonData.tokens.access);",
+                      "    pm.collectionVariables.set('refresh_token', jsonData.tokens.refresh);",
+                      "} else {",
+                      "    pm.test('Invalid TOTP or no MFA setup', function() {",
+                      "        pm.expect(pm.response.code).to.eql(400);",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "✅ Verify MFA - Success with Backup Code",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"fingerprint_hash\": \"{{fingerprint_hash}}\",\n    \"backup_code\": \"{{backup_code}}\",\n    \"trust_device\": false\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/verify-mfa/", "host": ["{{base_url}}"], "path": ["api", "auth", "verify-mfa", ""]},
+                "description": "Verify MFA with backup code. Returns 200 with tokens."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.test('MFA verified successfully', function() {",
+                      "        pm.expect(jsonData.status).to.eql('success');",
+                      "    });",
+                      "    pm.collectionVariables.set('access_token', jsonData.tokens.access);",
+                      "    pm.collectionVariables.set('refresh_token', jsonData.tokens.refresh);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify MFA - Invalid TOTP Code",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"fingerprint_hash\": \"{{fingerprint_hash}}\",\n    \"totp_code\": \"000000\",\n    \"trust_device\": false\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/verify-mfa/", "host": ["{{base_url}}"], "path": ["api", "auth", "verify-mfa", ""]},
+                "description": "Invalid TOTP code. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.totp_code || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify MFA - Missing Required Fields",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": \"{{user_id}}\"\n}"
+                },
+                "url": {"raw": "{{base_url}}/api/auth/verify-mfa/", "host": ["{{base_url}}"], "path": ["api", "auth", "verify-mfa", ""]},
+                "description": "Missing TOTP code and backup code. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.totp_code || jsonData.backup_code).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "1.4 Logout",
+          "description": "Logout scenarios",
+          "item": [
+            {
+              "name": "✅ Logout - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{access_token}}"}],
+                "body": {"mode": "raw", "raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/auth/logout/", "host": ["{{base_url}}"], "path": ["api", "auth", "logout", ""]},
+                "description": "Successful logout. Blacklists refresh token. Returns 200."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "pm.test('Has success message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message).to.exist;",
+                      "});",
+                      "",
+                      "// Clear tokens after successful logout",
+                      "pm.collectionVariables.set('access_token', '');",
+                      "pm.collectionVariables.set('refresh_token', '');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Logout - No Authentication",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"refresh\": \"fake-refresh-token\"\n}"},
+                "url": {"raw": "{{base_url}}/api/auth/logout/", "host": ["{{base_url}}"], "path": ["api", "auth", "logout", ""]},
+                "description": "Logout without authentication header. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Logout - Invalid Refresh Token",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{access_token}}"}],
+                "body": {"mode": "raw", "raw": "{\n    \"refresh\": \"invalid-token-12345\"\n}"},
+                "url": {"raw": "{{base_url}}/api/auth/logout/", "host": ["{{base_url}}"], "path": ["api", "auth", "logout", ""]},
+                "description": "Logout with invalid refresh token. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Devices & Sessions",
+      "description": "All device and session management scenarios",
+      "item": [
+        {
+          "name": "2.1 Device Verification",
+          "description": "Device verification after login from new device",
+          "item": [
+            {
+              "name": "✅ Verify Device - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"fingerprint_hash\": \"{{fingerprint_hash}}\",\n    \"otp_code\": \"123456\",\n    \"trust_device\": true,\n    \"trust_days\": 30\n}"},
+                "url": {"raw": "{{base_url}}/api/devices/verify/", "host": ["{{base_url}}"], "path": ["api", "devices", "verify", ""]},
+                "description": "Verify new device with OTP. Returns 200 with tokens. Note: Use actual OTP from email."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.test('Status is success', function() {",
+                      "        pm.expect(jsonData.status).to.eql('success');",
+                      "    });",
+                      "    pm.test('Has tokens', function() {",
+                      "        pm.expect(jsonData.tokens).to.exist;",
+                      "    });",
+                      "    pm.test('Has device info', function() {",
+                      "        pm.expect(jsonData.device).to.exist;",
+                      "        pm.expect(jsonData.device.id).to.exist;",
+                      "    });",
+                      "    pm.collectionVariables.set('access_token', jsonData.tokens.access);",
+                      "    pm.collectionVariables.set('refresh_token', jsonData.tokens.refresh);",
+                      "    pm.collectionVariables.set('device_id', jsonData.device.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify Device - Invalid OTP",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"fingerprint_hash\": \"{{fingerprint_hash}}\",\n    \"otp_code\": \"000000\",\n    \"trust_device\": true,\n    \"trust_days\": 30\n}"},
+                "url": {"raw": "{{base_url}}/api/devices/verify/", "host": ["{{base_url}}"], "path": ["api", "devices", "verify", ""]},
+                "description": "Invalid OTP code. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.otp_code || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify Device - Missing User ID",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"fingerprint_hash\": \"{{fingerprint_hash}}\",\n    \"otp_code\": \"123456\"\n}"},
+                "url": {"raw": "{{base_url}}/api/devices/verify/", "host": ["{{base_url}}"], "path": ["api", "devices", "verify", ""]},
+                "description": "Missing user_id. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.user_id || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify Device - Missing Fingerprint Hash",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"123456\"\n}"},
+                "url": {"raw": "{{base_url}}/api/devices/verify/", "host": ["{{base_url}}"], "path": ["api", "devices", "verify", ""]},
+                "description": "Missing fingerprint_hash. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.fingerprint_hash || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "2.2 Device Management",
+          "description": "List and manage devices",
+          "item": [
+            {
+              "name": "✅ List Devices - Success",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+                "url": {"raw": "{{base_url}}/api/devices/", "host": ["{{base_url}}"], "path": ["api", "devices", ""]},
+                "description": "Get all devices for authenticated user. Returns 200 with device list."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Has devices array', function() {",
+                      "    pm.expect(jsonData.devices).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Has count field', function() {",
+                      "    pm.expect(jsonData.count).to.exist;",
+                      "});",
+                      "",
+                      "if (jsonData.devices && jsonData.devices.length > 0) {",
+                      "    var nonCurrentDevice = jsonData.devices.find(d => !d.is_current);",
+                      "    if (nonCurrentDevice) {",
+                      "        pm.collectionVariables.set('device_id', nonCurrentDevice.id);",
+                      "    } else {",
+                      "        pm.collectionVariables.set('device_id', jsonData.devices[0].id);",
+                      "    }",
+                      "    pm.test('Device has required fields', function() {",
+                      "        var device = jsonData.devices[0];",
+                      "        pm.expect(device.id).to.exist;",
+                      "        pm.expect(device.device_name).to.exist;",
+                      "        pm.expect(device.is_verified).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ List Devices - Unauthorized",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{base_url}}/api/devices/", "host": ["{{base_url}}"], "path": ["api", "devices", ""]},
+                "description": "List devices without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});",
+                      "",
+                      "pm.test('Has authentication error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.detail || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "✅ Revoke Device - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/devices/{{device_id}}/revoke/", "host": ["{{base_url}}"], "path": ["api", "devices", "{{device_id}}", "revoke", ""]},
+                "description": "Revoke a specific device. Returns 200. Note: Cannot revoke current device."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    pm.test('Device revoked successfully', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.status).to.eql('success');",
+                      "    });",
+                      "} else if (pm.response.code === 400) {",
+                      "    pm.test('Cannot revoke current device or device not found', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Revoke Device - Invalid Device ID",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/devices/00000000-0000-0000-0000-000000000000/revoke/", "host": ["{{base_url}}"], "path": ["api", "devices", "00000000-0000-0000-0000-000000000000", "revoke", ""]},
+                "description": "Revoke non-existent device. Returns 400 or 404."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is error (400 or 404)', function() {",
+                      "    pm.expect([400, 404]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Revoke Device - Unauthorized",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/devices/{{device_id}}/revoke/", "host": ["{{base_url}}"], "path": ["api", "devices", "{{device_id}}", "revoke", ""]},
+                "description": "Revoke device without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "2.3 Session Management",
+          "description": "List and manage active sessions",
+          "item": [
+            {
+              "name": "✅ List Sessions - Success",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+                "url": {"raw": "{{base_url}}/api/devices/sessions/", "host": ["{{base_url}}"], "path": ["api", "devices", "sessions", ""]},
+                "description": "Get all active sessions. Returns 200 with session list."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Has sessions array', function() {",
+                      "    pm.expect(jsonData.sessions).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Has count field', function() {",
+                      "    pm.expect(jsonData.count).to.exist;",
+                      "});",
+                      "",
+                      "if (jsonData.sessions && jsonData.sessions.length > 0) {",
+                      "    var nonCurrentSession = jsonData.sessions.find(s => !s.is_current);",
+                      "    if (nonCurrentSession) {",
+                      "        pm.collectionVariables.set('session_id', nonCurrentSession.id);",
+                      "    } else if (jsonData.sessions.length > 0) {",
+                      "        pm.collectionVariables.set('session_id', jsonData.sessions[0].id);",
+                      "    }",
+                      "    pm.test('Session has required fields', function() {",
+                      "        var session = jsonData.sessions[0];",
+                      "        pm.expect(session.id).to.exist;",
+                      "        pm.expect(session.device_name).to.exist;",
+                      "        pm.expect(session.is_active).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ List Sessions - Unauthorized",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{base_url}}/api/devices/sessions/", "host": ["{{base_url}}"], "path": ["api", "devices", "sessions", ""]},
+                "description": "List sessions without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "✅ Revoke Session - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/devices/sessions/{{session_id}}/revoke/", "host": ["{{base_url}}"], "path": ["api", "devices", "sessions", "{{session_id}}", "revoke", ""]},
+                "description": "Revoke a specific session. Returns 200. Note: Cannot revoke current session."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    pm.test('Session revoked successfully', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.status).to.eql('success');",
+                      "    });",
+                      "} else if (pm.response.code === 400) {",
+                      "    pm.test('Cannot revoke current session or session not found', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Revoke Session - Invalid Session ID",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/devices/sessions/00000000-0000-0000-0000-000000000000/revoke/", "host": ["{{base_url}}"], "path": ["api", "devices", "sessions", "00000000-0000-0000-0000-000000000000", "revoke", ""]},
+                "description": "Revoke non-existent session. Returns 400 or 404."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is error (400 or 404)', function() {",
+                      "    pm.expect([400, 404]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "✅ Revoke All Sessions - Exclude Current",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"include_current\": false\n}"},
+                "url": {"raw": "{{base_url}}/api/devices/sessions/revoke-all/", "host": ["{{base_url}}"], "path": ["api", "devices", "sessions", "revoke-all", ""]},
+                "description": "Revoke all sessions except current. Returns 200 with count of revoked sessions."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Has success status', function() {",
+                      "    pm.expect(jsonData.status).to.eql('success');",
+                      "});",
+                      "",
+                      "pm.test('Has revoked_count', function() {",
+                      "    pm.expect(jsonData.revoked_count).to.exist;",
+                      "});",
+                      "",
+                      "pm.test('Current session not revoked', function() {",
+                      "    pm.expect(jsonData.current_session_revoked).to.eql(false);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "✅ Revoke All Sessions - Include Current",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"include_current\": true\n}"},
+                "url": {"raw": "{{base_url}}/api/devices/sessions/revoke-all/", "host": ["{{base_url}}"], "path": ["api", "devices", "sessions", "revoke-all", ""]},
+                "description": "Revoke ALL sessions including current. Returns 200. Current token will be invalidated."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Has success status', function() {",
+                      "    pm.expect(jsonData.status).to.eql('success');",
+                      "});",
+                      "",
+                      "pm.test('Current session revoked', function() {",
+                      "    pm.expect(jsonData.current_session_revoked).to.eql(true);",
+                      "});",
+                      "",
+                      "pm.collectionVariables.set('access_token', '');",
+                      "pm.collectionVariables.set('refresh_token', '');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Revoke All Sessions - Unauthorized",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"include_current\": false\n}"},
+                "url": {"raw": "{{base_url}}/api/devices/sessions/revoke-all/", "host": ["{{base_url}}"], "path": ["api", "devices", "sessions", "revoke-all", ""]},
+                "description": "Revoke all sessions without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "2.4 OTP Operations",
+          "description": "OTP resend operations",
+          "item": [
+            {
+              "name": "✅ Resend Device OTP - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/otp/resend-device/", "host": ["{{base_url}}"], "path": ["api", "otp", "resend-device", ""]},
+                "description": "Resend OTP for device verification. Returns 200 with expiry time."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    pm.test('OTP resent successfully', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.message).to.exist;",
+                      "    });",
+                      "    pm.test('Has email hint', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.email_hint).to.exist;",
+                      "    });",
+                      "} else if (pm.response.code === 400) {",
+                      "    pm.test('No pending verification or cooldown active', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Resend Device OTP - No Pending Verification",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"00000000-0000-0000-0000-000000000000\"\n}"},
+                "url": {"raw": "{{base_url}}/api/otp/resend-device/", "host": ["{{base_url}}"], "path": ["api", "otp", "resend-device", ""]},
+                "description": "Resend OTP when no pending verification. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Resend Device OTP - Missing User ID",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/otp/resend-device/", "host": ["{{base_url}}"], "path": ["api", "otp", "resend-device", ""]},
+                "description": "Resend OTP without user_id. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.user_id || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. TOTP/MFA",
+      "description": "All TOTP/MFA scenarios including setup, verification, disable, and backup codes",
+      "item": [
+        {
+          "name": "3.1 TOTP Setup",
+          "description": "Setup TOTP for MFA",
+          "item": [
+            {
+              "name": "✅ Setup TOTP - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/totp/setup/", "host": ["{{base_url}}"], "path": ["api", "totp", "setup", ""]},
+                "description": "Setup TOTP. Returns 200 with secret and QR code URI."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.test('Has secret', function() {",
+                      "        pm.expect(jsonData.secret).to.exist;",
+                      "    });",
+                      "    pm.test('Has QR URI', function() {",
+                      "        pm.expect(jsonData.qr_uri).to.exist;",
+                      "    });",
+                      "    pm.collectionVariables.set('totp_secret', jsonData.secret);",
+                      "    console.log('TOTP Secret: ' + jsonData.secret);",
+                      "    console.log('QR URI: ' + jsonData.qr_uri);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Setup TOTP - Unauthorized",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/totp/setup/", "host": ["{{base_url}}"], "path": ["api", "totp", "setup", ""]},
+                "description": "Setup TOTP without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚠️ Setup TOTP - Already Enabled",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/totp/setup/", "host": ["{{base_url}}"], "path": ["api", "totp", "setup", ""]},
+                "description": "Setup TOTP when already enabled. May return 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect([200, 400]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 400) {",
+                      "    pm.test('TOTP already enabled', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "3.2 TOTP Verification",
+          "description": "Verify and enable TOTP",
+          "item": [
+            {
+              "name": "✅ Verify TOTP - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"code\": \"123456\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/verify/", "host": ["{{base_url}}"], "path": ["api", "totp", "verify", ""]},
+                "description": "Verify TOTP code to enable MFA. Returns 200 with backup codes. Note: Use actual code from authenticator app."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.test('Has backup codes', function() {",
+                      "        pm.expect(jsonData.backup_codes).to.exist;",
+                      "        pm.expect(jsonData.backup_codes).to.be.an('array');",
+                      "    });",
+                      "    if (jsonData.backup_codes && jsonData.backup_codes.length > 0) {",
+                      "        pm.collectionVariables.set('backup_code', jsonData.backup_codes[0]);",
+                      "        console.log('Backup Codes: ' + JSON.stringify(jsonData.backup_codes));",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify TOTP - Invalid Code",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"code\": \"000000\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/verify/", "host": ["{{base_url}}"], "path": ["api", "totp", "verify", ""]},
+                "description": "Verify with invalid TOTP code. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.code || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify TOTP - Missing Code",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/totp/verify/", "host": ["{{base_url}}"], "path": ["api", "totp", "verify", ""]},
+                "description": "Verify without code. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.code || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify TOTP - Unauthorized",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"code\": \"123456\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/verify/", "host": ["{{base_url}}"], "path": ["api", "totp", "verify", ""]},
+                "description": "Verify without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "3.3 TOTP Disable",
+          "description": "Disable TOTP/MFA",
+          "item": [
+            {
+              "name": "✅ Disable TOTP - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"password\": \"{{test_password}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/disable/", "host": ["{{base_url}}"], "path": ["api", "totp", "disable", ""]},
+                "description": "Disable TOTP with password confirmation. Returns 200."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    pm.test('TOTP disabled successfully', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.message || jsonData.status).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Disable TOTP - Wrong Password",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"password\": \"WrongPassword123!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/disable/", "host": ["{{base_url}}"], "path": ["api", "totp", "disable", ""]},
+                "description": "Disable TOTP with wrong password. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.password || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Disable TOTP - Missing Password",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/totp/disable/", "host": ["{{base_url}}"], "path": ["api", "totp", "disable", ""]},
+                "description": "Disable TOTP without password. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.password || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Disable TOTP - Unauthorized",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"password\": \"{{test_password}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/disable/", "host": ["{{base_url}}"], "path": ["api", "totp", "disable", ""]},
+                "description": "Disable TOTP without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "3.4 Backup Codes",
+          "description": "Manage backup codes",
+          "item": [
+            {
+              "name": "✅ Regenerate Backup Codes - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"password\": \"{{test_password}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/regenerate-backup-codes/", "host": ["{{base_url}}"], "path": ["api", "totp", "regenerate-backup-codes", ""]},
+                "description": "Regenerate backup codes. Returns 200 with new codes."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.test('Has backup codes', function() {",
+                      "        pm.expect(jsonData.backup_codes).to.exist;",
+                      "        pm.expect(jsonData.backup_codes).to.be.an('array');",
+                      "    });",
+                      "    if (jsonData.backup_codes && jsonData.backup_codes.length > 0) {",
+                      "        pm.collectionVariables.set('backup_code', jsonData.backup_codes[0]);",
+                      "        console.log('New Backup Codes: ' + JSON.stringify(jsonData.backup_codes));",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Regenerate Backup Codes - Wrong Password",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"password\": \"WrongPassword123!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/regenerate-backup-codes/", "host": ["{{base_url}}"], "path": ["api", "totp", "regenerate-backup-codes", ""]},
+                "description": "Regenerate with wrong password. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.password || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Regenerate Backup Codes - Missing Password",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/totp/regenerate-backup-codes/", "host": ["{{base_url}}"], "path": ["api", "totp", "regenerate-backup-codes", ""]},
+                "description": "Regenerate without password. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.password || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Regenerate Backup Codes - Unauthorized",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"password\": \"{{test_password}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/totp/regenerate-backup-codes/", "host": ["{{base_url}}"], "path": ["api", "totp", "regenerate-backup-codes", ""]},
+                "description": "Regenerate without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "3.5 MFA Status",
+          "description": "Check MFA status",
+          "item": [
+            {
+              "name": "✅ Get MFA Status - Success",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+                "url": {"raw": "{{base_url}}/api/totp/status/", "host": ["{{base_url}}"], "path": ["api", "totp", "status", ""]},
+                "description": "Get MFA status. Returns 200 with MFA enabled status."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "pm.test('Has MFA status', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.mfa_enabled).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Get MFA Status - Unauthorized",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{base_url}}/api/totp/status/", "host": ["{{base_url}}"], "path": ["api", "totp", "status", ""]},
+                "description": "Get MFA status without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Password Management",
+      "description": "All password management scenarios including forgot, reset, and change password",
+      "item": [
+        {
+          "name": "4.1 Forgot Password",
+          "description": "Request password reset",
+          "item": [
+            {
+              "name": "✅ Forgot Password - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"email\": \"{{test_email}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/forgot/", "host": ["{{base_url}}"], "path": ["api", "password", "forgot", ""]},
+                "description": "Request password reset. Returns 200 and sends OTP. Rate limited: 100/hour per IP."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.reset_token) {",
+                      "        pm.collectionVariables.set('reset_token', jsonData.reset_token);",
+                      "        console.log('Reset Token: ' + jsonData.reset_token);",
+                      "    }",
+                      "    if (jsonData.user_id) {",
+                      "        pm.collectionVariables.set('user_id', jsonData.user_id);",
+                      "    }",
+                      "    pm.test('Has success message', function() {",
+                      "        pm.expect(jsonData.message || jsonData.status).to.exist;",
+                      "    });",
+                      "}",
+                      "",
+                      "console.log('Password reset OTP sent. Check email.');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Forgot Password - Invalid Email",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"email\": \"nonexistent@example.com\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/forgot/", "host": ["{{base_url}}"], "path": ["api", "password", "forgot", ""]},
+                "description": "Request with non-existent email. May return 200 for security (to prevent email enumeration)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect([200, 404]).to.include(pm.response.code);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Forgot Password - Missing Email",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/password/forgot/", "host": ["{{base_url}}"], "path": ["api", "password", "forgot", ""]},
+                "description": "Request without email. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.email || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚠️ Forgot Password - Rate Limited",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"email\": \"{{test_email}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/forgot/", "host": ["{{base_url}}"], "path": ["api", "password", "forgot", ""]},
+                "description": "Request when rate limit exceeded (100/hour). Returns 429."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect([200, 429]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 429) {",
+                      "    pm.test('Rate limit error', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "4.2 Reset Password",
+          "description": "Reset password with OTP",
+          "item": [
+            {
+              "name": "✅ Reset Password (with token) - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"reset_token\": \"{{reset_token}}\",\n    \"otp_code\": \"123456\",\n    \"new_password\": \"NewPassword456!\",\n    \"new_password2\": \"NewPassword456!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/reset/", "host": ["{{base_url}}"], "path": ["api", "password", "reset", ""]},
+                "description": "Reset password with token and OTP. Returns 200. Note: Use actual OTP from email."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.collectionVariables.set('test_password', 'NewPassword456!');",
+                      "    console.log('Password updated in variables');",
+                      "    pm.test('Has success message', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.message || jsonData.status).to.exist;",
+                      "    });",
+                      "}",
+                      "",
+                      "console.log('Password reset successful. Login with new password.');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "✅ Reset Password (with user_id) - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"123456\",\n    \"new_password\": \"NewPassword456!\",\n    \"new_password2\": \"NewPassword456!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/reset/", "host": ["{{base_url}}"], "path": ["api", "password", "reset", ""]},
+                "description": "Reset password with user_id and OTP. Returns 200."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test('Has success message', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.message || jsonData.status).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Reset Password - Invalid OTP",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"000000\",\n    \"new_password\": \"NewPassword456!\",\n    \"new_password2\": \"NewPassword456!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/reset/", "host": ["{{base_url}}"], "path": ["api", "password", "reset", ""]},
+                "description": "Reset with invalid OTP. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.otp_code || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Reset Password - Password Mismatch",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"123456\",\n    \"new_password\": \"NewPassword456!\",\n    \"new_password2\": \"DifferentPassword456!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/reset/", "host": ["{{base_url}}"], "path": ["api", "password", "reset", ""]},
+                "description": "Reset with mismatched passwords. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.new_password2 || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Reset Password - Weak Password",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"123456\",\n    \"new_password\": \"weak\",\n    \"new_password2\": \"weak\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/reset/", "host": ["{{base_url}}"], "path": ["api", "password", "reset", ""]},
+                "description": "Reset with weak password. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.new_password || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Reset Password - Missing Fields",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"otp_code\": \"123456\"\n}"},
+                "url": {"raw": "{{base_url}}/api/password/reset/", "host": ["{{base_url}}"], "path": ["api", "password", "reset", ""]},
+                "description": "Reset without required fields. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.user_id || jsonData.reset_token || jsonData.new_password || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "4.3 Change Password",
+          "description": "Change password for authenticated user",
+          "item": [
+            {
+              "name": "✅ Change Password - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"new_password\": \"NewPassword789!\",\n    \"new_password2\": \"NewPassword789!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/change-password/", "host": ["{{base_url}}"], "path": ["api", "profile", "change-password", ""]},
+                "description": "Change password with valid current password. Returns 200."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "pm.test('Has success message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message || jsonData.status).to.exist;",
+                      "});",
+                      "",
+                      "console.log('Password changed successfully. Tokens may be revoked.');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Change Password - Wrong Current Password",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"current_password\": \"WrongPassword123!\",\n    \"new_password\": \"NewPassword789!\",\n    \"new_password2\": \"NewPassword789!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/change-password/", "host": ["{{base_url}}"], "path": ["api", "profile", "change-password", ""]},
+                "description": "Change with wrong current password. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.current_password || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Change Password - Password Mismatch",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"new_password\": \"NewPassword789!\",\n    \"new_password2\": \"DifferentPassword789!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/change-password/", "host": ["{{base_url}}"], "path": ["api", "profile", "change-password", ""]},
+                "description": "Change with mismatched new passwords. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.new_password2 || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Change Password - Weak New Password",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"new_password\": \"weak\",\n    \"new_password2\": \"weak\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/change-password/", "host": ["{{base_url}}"], "path": ["api", "profile", "change-password", ""]},
+                "description": "Change to weak password. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.new_password || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Change Password - Missing Fields",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"current_password\": \"{{test_password}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/change-password/", "host": ["{{base_url}}"], "path": ["api", "profile", "change-password", ""]},
+                "description": "Change without new password. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.new_password || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Change Password - Unauthorized",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"new_password\": \"NewPassword789!\",\n    \"new_password2\": \"NewPassword789!\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/change-password/", "host": ["{{base_url}}"], "path": ["api", "profile", "change-password", ""]},
+                "description": "Change without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Profile",
+      "description": "All profile management scenarios",
+      "item": [
+        {
+          "name": "5.1 Get Profile",
+          "description": "Retrieve profile information",
+          "item": [
+            {
+              "name": "✅ Get Profile - Success",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+                "url": {"raw": "{{base_url}}/api/profile/me/", "host": ["{{base_url}}"], "path": ["api", "profile", "me", ""]},
+                "description": "Get user profile. Returns 200 with profile data."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "pm.test('Has profile data', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.email).to.exist;",
+                      "    pm.expect(jsonData.username).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Get Profile - Unauthorized",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{base_url}}/api/profile/me/", "host": ["{{base_url}}"], "path": ["api", "profile", "me", ""]},
+                "description": "Get profile without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "5.2 Update Profile",
+          "description": "Update profile information",
+          "item": [
+            {
+              "name": "✅ Update Profile - Success",
+              "request": {
+                "method": "PUT",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"first_name\": \"Updated\",\n    \"last_name\": \"Name\",\n    \"phone\": \"+1234567890\",\n    \"timezone\": \"America/New_York\",\n    \"language\": \"en\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/me/", "host": ["{{base_url}}"], "path": ["api", "profile", "me", ""]},
+                "description": "Update profile. Returns 200 with updated data."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "pm.test('Has updated data', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.first_name).to.eql('Updated');",
+                      "    pm.expect(jsonData.last_name).to.eql('Name');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Update Profile - Invalid Data",
+              "request": {
+                "method": "PUT",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"phone\": \"invalid_phone\",\n    \"timezone\": \"Invalid/Timezone\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/me/", "host": ["{{base_url}}"], "path": ["api", "profile", "me", ""]},
+                "description": "Update with invalid data. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.phone || jsonData.timezone || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Update Profile - Unauthorized",
+              "request": {
+                "method": "PUT",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"first_name\": \"Updated\"\n}"},
+                "url": {"raw": "{{base_url}}/api/profile/me/", "host": ["{{base_url}}"], "path": ["api", "profile", "me", ""]},
+                "description": "Update without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "5.3 Get Account Details",
+          "description": "Get account-specific details",
+          "item": [
+            {
+              "name": "✅ Get Account Details - Success",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+                "url": {"raw": "{{base_url}}/api/profile/account/", "host": ["{{base_url}}"], "path": ["api", "profile", "account", ""]},
+                "description": "Get account details. Returns 200 with account info."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "pm.test('Has account data', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Get Account Details - Unauthorized",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{base_url}}/api/profile/account/", "host": ["{{base_url}}"], "path": ["api", "profile", "account", ""]},
+                "description": "Get account details without authentication. Returns 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401 Unauthorized', function() {",
+                      "    pm.expect(pm.response.code).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OTP",
+      "item": [
+        {
+          "name": "Resend Device OTP",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\"\n}"},
+            "url": {"raw": "{{base_url}}/api/otp/resend-device/", "host": ["{{base_url}}"], "path": ["api", "otp", "resend-device", ""]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Email Verification",
+      "description": "All email verification scenarios",
+      "item": [
+        {
+          "name": "6.1 Verify Email",
+          "description": "Verify email with OTP",
+          "item": [
+            {
+              "name": "✅ Verify Email - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"123456\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/verify-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "verify-email", ""]},
+                "description": "Verify email with valid OTP. Returns 200. Note: Use actual OTP from email."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "pm.test('Has success message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message || jsonData.status).to.exist;",
+                      "});",
+                      "",
+                      "console.log('Email verified successfully.');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify Email - Invalid OTP",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"000000\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/verify-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "verify-email", ""]},
+                "description": "Verify with invalid OTP. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.otp_code || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify Email - Expired OTP",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"expired_otp\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/verify-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "verify-email", ""]},
+                "description": "Verify with expired OTP. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has error message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Verify Email - Missing Fields",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"otp_code\": \"123456\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/verify-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "verify-email", ""]},
+                "description": "Verify without user_id. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.user_id || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚠️ Verify Email - Already Verified",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"otp_code\": \"123456\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/verify-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "verify-email", ""]},
+                "description": "Verify already verified email. May return 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect([200, 400]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 400) {",
+                      "    pm.test('Already verified message', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "6.2 Resend Verification Email",
+          "description": "Resend verification email",
+          "item": [
+            {
+              "name": "✅ Resend Verification Email - Success",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"email\": \"{{test_email}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/resend-verification-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "resend-verification-email", ""]},
+                "description": "Resend verification email. Returns 200."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "pm.test('Has success message', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message || jsonData.status).to.exist;",
+                      "});",
+                      "",
+                      "console.log('Verification email resent. Check inbox.');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Resend Verification Email - Invalid Email",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"email\": \"nonexistent@example.com\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/resend-verification-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "resend-verification-email", ""]},
+                "description": "Resend to non-existent email. May return 200 for security."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect([200, 404]).to.include(pm.response.code);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "❌ Resend Verification Email - Missing Email",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {"raw": "{{base_url}}/api/notifications/resend-verification-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "resend-verification-email", ""]},
+                "description": "Resend without email. Returns 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 400 Bad Request', function() {",
+                      "    pm.expect(pm.response.code).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Has validation error', function() {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.email || jsonData.error).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚠️ Resend Verification Email - Cooldown Active",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"email\": \"{{test_email}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/resend-verification-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "resend-verification-email", ""]},
+                "description": "Resend when cooldown is active. Returns 429."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect([200, 429]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 429) {",
+                      "    pm.test('Cooldown message', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚠️ Resend Verification Email - Rate Limited",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"email\": \"{{test_email}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/resend-verification-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "resend-verification-email", ""]},
+                "description": "Resend when rate limit exceeded. Returns 429."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect([200, 429]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 429) {",
+                      "    pm.test('Rate limit error', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚠️ Resend Verification Email - Already Verified",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n    \"email\": \"{{test_email}}\"\n}"},
+                "url": {"raw": "{{base_url}}/api/notifications/resend-verification-email/", "host": ["{{base_url}}"], "path": ["api", "notifications", "resend-verification-email", ""]},
+                "description": "Resend for already verified email. May return 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response received', function() {",
+                      "    pm.expect([200, 400]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 400) {",
+                      "    pm.test('Already verified message', function() {",
+                      "        var jsonData = pm.response.json();",
+                      "        pm.expect(jsonData.error || jsonData.detail).to.exist;",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Admin - Users & MFA",
+      "description": "Admin-only endpoints for managing users, devices, sessions, and MFA. All requests require a valid admin JWT in {{access_token}}.",
+      "item": [
+        {
+          "name": "5.1 Users",
+          "description": "User listing, detail, and lifecycle actions (soft delete, hard remove, restore).",
+          "item": [
+            {
+              "name": "✅ List Users - Page 1 (10 per page)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/?page=1&page_size=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", ""],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "page_size", "value": "10"}
+                  ]
+                },
+                "description": "List the first page of users for the admin dashboard. Uses standard DRF-style pagination (count/next/previous/results). Requires an admin JWT in {{access_token}}."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Has pagination fields', function () {",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.results).to.be.an('array');",
+                      "});",
+                      "",
+                      "if (jsonData.results && jsonData.results.length > 0) {",
+                      "    pm.collectionVariables.set('admin_user_id', jsonData.results[0].id);",
+                      "}",
+                      "",
+                      "if (jsonData.next) {",
+                      "    pm.collectionVariables.set('admin_users_next_page', jsonData.next);",
+                      "} else {",
+                      "    pm.collectionVariables.unset('admin_users_next_page');",
+                      "}",
+                      "",
+                      "pm.collectionVariables.set('admin_users_page_size', 10);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "✅ List Users - Page 2 (Next Page)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/?page=2&page_size=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", ""],
+                  "query": [
+                    {"key": "page", "value": "2"},
+                    {"key": "page_size", "value": "10"}
+                  ]
+                },
+                "description": "List the second page of users (next 10 users). This represents clicking \"next page\" in an admin UI. Requires an admin JWT."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Results length <= 10', function () {",
+                      "    pm.expect(jsonData.results.length).to.be.at.most(10);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "ℹ️ Get User Detail (by ID)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", ""]
+                },
+                "description": "Get full admin view of a single user using the ID from the paginated list (admin_user_id)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Has basic user fields', function () {",
+                      "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('admin_user_id'));",
+                      "    pm.expect(jsonData.email).to.exist;",
+                      "    pm.expect(jsonData.username).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "🗑️ Soft Delete User (Admin)",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/delete/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "delete", ""]
+                },
+                "description": "Soft delete the selected user. Marks the account as deleted and revokes active sessions but keeps data for audit. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Soft delete success payload', function () {",
+                      "    pm.expect(jsonData.status).to.eql('success');",
+                      "    pm.expect(jsonData.user_id).to.eql(pm.collectionVariables.get('admin_user_id'));",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "♻️ Restore User (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/restore/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "restore", ""]
+                },
+                "description": "Restore a soft-deleted user back to active status. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Restore success payload', function () {",
+                      "    pm.expect(jsonData.status).to.eql('success');",
+                      "    pm.expect(jsonData.user_id).to.eql(pm.collectionVariables.get('admin_user_id'));",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "5.2 MFA Management",
+          "description": "Admin MFA operations on a specific user plus reporting.",
+          "item": [
+            {
+              "name": "ℹ️ Get User MFA Details",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/mfa/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "mfa", ""]
+                },
+                "description": "Get full MFA configuration for the selected user: enabled flag, method, TOTP device, backup codes, trusted devices, last verification, etc."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Has MFA fields', function () {",
+                      "    pm.expect(jsonData.user_id).to.eql(pm.collectionVariables.get('admin_user_id'));",
+                      "    pm.expect(jsonData).to.have.property('mfa_enabled');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "🔁 Reset User MFA (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"reason\": \"User lost authenticator app\",\n    \"notify_user\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/mfa/reset/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "mfa", "reset", ""]
+                },
+                "description": "Reset MFA for a user: disable MFA, delete TOTP devices, invalidate backup codes, and revoke trusted devices. Optionally notify the user by email. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Reset MFA success', function () {",
+                      "    pm.expect(jsonData.status).to.eql('success');",
+                      "    pm.expect(jsonData.user_id).to.eql(pm.collectionVariables.get('admin_user_id'));",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "✅ Force Enable MFA (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"method\": \"totp\",\n    \"reason\": \"Security policy requirement\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/mfa/force-enable/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "mfa", "force-enable", ""]
+                },
+                "description": "Force-enable MFA for the selected user with the given method (typically totp). Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⛔ Force Disable MFA (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"reason\": \"Temporary admin disable for troubleshooting\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/mfa/force-disable/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "mfa", "force-disable", ""]
+                },
+                "description": "Force-disable MFA for the selected user. Admin-only and should be used cautiously."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "📟 Generate Emergency Codes (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/mfa/emergency-codes/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "mfa", "emergency-codes", ""]
+                },
+                "description": "Generate a new set of emergency backup codes for the selected user. Previous unused codes will be invalidated. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Emergency codes generated', function () {",
+                      "    pm.expect(jsonData.codes).to.be.an('array');",
+                      "    pm.expect(jsonData.codes.length).to.be.above(0);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "📵 Revoke Trusted Devices (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{}"},
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/mfa/revoke-devices/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "mfa", "revoke-devices", ""]
+                },
+                "description": "Revoke all trusted devices for the selected user. After this, MFA will be required again on all devices. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "📝 Get MFA Audit History (Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/mfa/audit-history/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "mfa", "audit-history", ""]
+                },
+                "description": "Get MFA-related audit events (enable/disable, resets, emergency codes, trusted devices, challenges) for the selected user. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});",
+                      "",
+                      "var jsonData = pm.response.json();",
+                      "pm.test('Has events array', function () {",
+                      "    pm.expect(jsonData.events).to.be.an('array');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "🚨 Emergency MFA Bypass (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"duration_hours\": 24,\n    \"reason\": \"Emergency access requested by support\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/users/{{admin_user_id}}/mfa/emergency-bypass/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "users", "{{admin_user_id}}", "mfa", "emergency-bypass", ""]
+                },
+                "description": "Create a temporary MFA bypass window for the selected user (e.g. 24 hours). Admin-only and should be audited."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "📊 MFA Compliance Report (Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/mfa/compliance-report/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "mfa", "compliance-report", ""]
+                },
+                "description": "Get an overview of MFA compliance across active users: total users, enabled/disabled, compliance rate, and high-risk users. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "📦 Bulk Enable MFA (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_ids\": [\"{{admin_user_id}}\"],\n    \"method\": \"totp\",\n    \"reason\": \"Enforce MFA for pilot group\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/mfa/bulk-enable/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "mfa", "bulk-enable", ""]
+                },
+                "description": "Bulk-enable MFA for a list of user IDs. Example uses just admin_user_id as a single-element list. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "📦 Bulk Disable MFA (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_ids\": [\"{{admin_user_id}}\"],\n    \"reason\": \"Temporary maintenance window\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/mfa/bulk-disable/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "mfa", "bulk-disable", ""]
+                },
+                "description": "Bulk-disable MFA for a list of user IDs. Example uses just admin_user_id as a single-element list. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚙️ Get MFA Policy (Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/mfa/policy/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "mfa", "policy", ""]
+                },
+                "description": "Get current global MFA policy (required roles, allowed methods, backup code requirements, trusted device expiry, etc.). Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "⚙️ Update MFA Policy (Admin)",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"require_for_roles\": [\"admin\", \"manager\"],\n    \"allow_methods\": [\"totp\", \"email\"],\n    \"backup_codes_required\": true,\n    \"trusted_device_expiry_days\": 30,\n    \"mfa_timeout_minutes\": 15\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin-dashboard/mfa/policy/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin-dashboard", "mfa", "policy", ""]
+                },
+                "description": "Update global MFA policy settings. In this implementation the policy is echoed back and audit-logged, but not persisted to a dedicated DB table. Admin-only."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200 OK', function() {",
+                      "    pm.expect(pm.response.code).to.eql(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .alert-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .device-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ddd; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .info-label { font-weight: bold; color: #667eea; }
+        .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 New Device Login Detected</h1>
+    </div>
+    <div class="content">
+        <p>Hello {{ user.first_name|default:user.username }},</p>
+        
+        <div class="alert-box">
+            <strong>⚠️ Security Alert</strong><br>
+            We detected a login to your account from a new device.
+        </div>
+        
+        <div class="device-info">
+            <h3>Device Details:</h3>
+            <div class="info-row">
+                <span class="info-label">Device:</span>
+                <span>{{ device_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Type:</span>
+                <span>{{ device_type }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Browser:</span>
+                <span>{{ browser }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Operating System:</span>
+                <span>{{ os }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Location:</span>
+                <span>{{ location }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">IP Address:</span>
+                <span>{{ ip_address }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Time:</span>
+                <span>{{ login_time|date:"F d, Y g:i A" }}</span>
+            </div>
+        </div>
+        
+        <p><strong>Was this you?</strong></p>
+        <p>If you recognize this activity, you can safely ignore this email.</p>
+        
+        <p><strong>Didn't recognize this device?</strong></p>
+        <p>If this wasn't you, your account may be compromised. Please:</p>
+        <ul>
+            <li>Change your password immediately</li>
+            <li>Enable two-factor authentication</li>
+            <li>Review your recent account activity</li>
+            <li>Remove any unrecognized devices</li>
+        </ul>
+        
+        <a href="{{ site_url }}/account/security" class="button">Review Security Settings</a>
+        
+        <div class="footer">
+            <p>This is an automated security alert from {{ site_name }}</p>
+            <p>If you have any concerns, please contact our support team.</p>
+        </div>
+    </div>
+</body>
+</html>

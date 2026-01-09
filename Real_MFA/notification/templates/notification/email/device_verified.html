@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .success-box { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ddd; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .info-label { font-weight: bold; color: #11998e; }
+        .button { display: inline-block; background: #11998e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .badge { background: #28a745; color: white; padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✅ Device Verified Successfully</h1>
+    </div>
+    <div class="content">
+        <p>Hello {{ user.first_name|default:user.username }},</p>
+        
+        <div class="success-box">
+            <strong>🎉 Verification Complete!</strong><br>
+            Your device has been successfully verified and added to your trusted devices.
+        </div>
+        
+        <div class="info-box">
+            <h3>Device Information:</h3>
+            <div class="info-row">
+                <span class="info-label">Device Name:</span>
+                <span>{{ device_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Device Type:</span>
+                <span>{{ device_type }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Browser:</span>
+                <span>{{ browser }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Operating System:</span>
+                <span>{{ os }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Status:</span>
+                <span><span class="badge">TRUSTED</span></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Verified On:</span>
+                <span>{{ verified_time|date:"F d, Y g:i A" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">IP Address:</span>
+                <span>{{ ip_address }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Location:</span>
+                <span>{{ location }}</span>
+            </div>
+        </div>
+        
+        <h3>🔒 What This Means:</h3>
+        <ul>
+            <li>This device is now recognized as a trusted device</li>
+            <li>You may experience fewer security challenges when logging in</li>
+            <li>Your account remains protected across all devices</li>
+        </ul>
+        
+        <h3>🛡️ Managing Your Devices:</h3>
+        <p>You can manage all your trusted devices from your account security settings:</p>
+        <ul>
+            <li>View all devices currently logged in to your account</li>
+            <li>Remove devices you no longer use or recognize</li>
+            <li>See when each device was last active</li>
+            <li>Enable additional security features per device</li>
+        </ul>
+        
+        <p><strong>Didn't verify this device?</strong></p>
+        <p>If you didn't authorize this device verification:</p>
+        <ol>
+            <li>Remove this device from your account immediately</li>
+            <li>Change your password</li>
+            <li>Enable two-factor authentication</li>
+            <li>Contact our support team</li>
+        </ol>
+        
+        <a href="{{ site_url }}/account/devices" class="button">Manage Devices</a>
+        
+        <div class="footer">
+            <p>This is an automated notification from {{ site_name }}</p>
+            <p>Questions? Contact support at {{ support_email }}</p>
+        </div>
+    </div>
+</body>
+</html>
