@@ -1,6 +1,6 @@
 # OTP APP - Complete Documentation
 
-## 📋 Table of Contents
+## ðŸ“‹ Table of Contents
 1. [Overview](#overview)
 2. [Models](#models)
 3. [Relationships](#relationships)
@@ -233,16 +233,16 @@ for code in backup_codes:
 
 **Best Practices:**
 ```python
-# ✅ Generate 10 backup codes
+# âœ… Generate 10 backup codes
 # - User writes them down / saves to password manager
 # - Codes good for account recovery emergency
 
-# ✅ Display codes only once
+# âœ… Display codes only once
 # - After user saves them
 # - Never show again
 # - User responsible for saving
 
-# ✅ Each code = one use
+# âœ… Each code = one use
 # - Can't reuse backup codes
 # - User has 10 attempts to recover
 # - After 10 uses, need new codes
@@ -351,14 +351,14 @@ failed_attempts (Int)          # Failed attempts
 ```
 
 **Advantages:**
-- ✅ No phone needed
-- ✅ Works globally (no SMS fees)
-- ✅ User already has email
+- âœ… No phone needed
+- âœ… Works globally (no SMS fees)
+- âœ… User already has email
 
 **Disadvantages:**
-- ❌ Slower (need to check email)
-- ❌ Less secure (email can be compromised)
-- ❌ Dependent on email service uptime
+- âŒ Slower (need to check email)
+- âŒ Less secure (email can be compromised)
+- âŒ Dependent on email service uptime
 
 ---
 
@@ -396,15 +396,15 @@ failed_attempts (Int)          # Failed attempts
 ```
 
 **Advantages:**
-- ✅ Fast (SMS nearly instant)
-- ✅ No app needed
-- ✅ Familiar to users
+- âœ… Fast (SMS nearly instant)
+- âœ… No app needed
+- âœ… Familiar to users
 
 **Disadvantages:**
-- ❌ SMS can be intercepted (not encrypted)
-- ❌ Costs money per SMS
-- ❌ SIM swap attacks possible
-- ❌ Not available in all countries
+- âŒ SMS can be intercepted (not encrypted)
+- âŒ Costs money per SMS
+- âŒ SIM swap attacks possible
+- âŒ Not available in all countries
 
 ---
 
@@ -440,17 +440,17 @@ notes (Text)                   # Admin notes about recovery
 **Recovery Scenarios:**
 ```
 Scenario 1: Lost phone with TOTP
-→ User has backup codes
-→ User enters backup code
-→ System verifies code
-→ User can now reset TOTP
+â†’ User has backup codes
+â†’ User enters backup code
+â†’ System verifies code
+â†’ User can now reset TOTP
 
 Scenario 2: Lost phone AND lost backup codes
-→ User contacts support
-→ Support verifies identity (questions, documents)
-→ Support disables old TOTP
-→ User sets up new TOTP
-→ MFARecovery logged for audit
+â†’ User contacts support
+â†’ Support verifies identity (questions, documents)
+â†’ Support disables old TOTP
+â†’ User sets up new TOTP
+â†’ MFARecovery logged for audit
 ```
 
 ---
@@ -459,41 +459,41 @@ Scenario 2: Lost phone AND lost backup codes
 
 ### ER Diagram:
 ```
-User (1) ─────────────────── (1) TOTPDevice
-  ├─ (1) ─────────────────── (1) EmailMFAMethod
-  ├─ (1) ─────────────────── (1) SMSMFAMethod
-  ├─ (1) ─────────────────── (*) BackupCode
-  ├─ (1) ─────────────────── (*) OTP
-  ├─ (1) ─────────────────── (*) MFAChallenge
-  └─ (1) ─────────────────── (*) MFARecovery
+User (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (1) TOTPDevice
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (1) EmailMFAMethod
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (1) SMSMFAMethod
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) BackupCode
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) OTP
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) MFAChallenge
+  â””â”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) MFARecovery
 
-MFAChallenge (0..1) ──────── (*) Device
+MFAChallenge (0..1) â”€â”€â”€â”€â”€â”€â”€â”€ (*) Device
 ```
 
 ### Relationship Descriptions:
 
-**User → TOTPDevice:** OneToOne
+**User â†’ TOTPDevice:** OneToOne
 - Each user has at most one TOTP device
 - TOTP is optional (not required)
 
-**User → EmailMFAMethod:** OneToOne
+**User â†’ EmailMFAMethod:** OneToOne
 - Each user has at most one email MFA config
 - Email MFA is optional
 
-**User → SMSMFAMethod:** OneToOne
+**User â†’ SMSMFAMethod:** OneToOne
 - Each user has at most one SMS MFA config
 - SMS MFA is optional
 
-**User → BackupCode:** OneToMany
+**User â†’ BackupCode:** OneToMany
 - User can have 10 backup codes
 - Each code single-use
 - Generated when setting up TOTP
 
-**User → OTP:** OneToMany
+**User â†’ OTP:** OneToMany
 - Multiple active OTPs per user (different purposes)
 - Usually 1-3 active OTPs at a time
 
-**User → MFAChallenge:** OneToMany
+**User â†’ MFAChallenge:** OneToMany
 - Multiple active challenges during login
 - Usually 1 active per login attempt
 
@@ -509,14 +509,14 @@ CREATE TABLE otps (
     code_hash VARCHAR(255) NOT NULL,
     purpose VARCHAR(30) NOT NULL,
     target VARCHAR(255) NOT NULL,
-    
+
     attempts INT DEFAULT 0,
     max_attempts INT DEFAULT 3,
     ip_address VARCHAR(45),
-    
+
     is_used BOOLEAN DEFAULT FALSE,
     used_at TIMESTAMP NULL,
-    
+
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -631,39 +631,39 @@ else:
 
 **1. Never store plaintext OTP:**
 ```python
-# ❌ BAD
+# âŒ BAD
 code = "123456"
 OTP.objects.create(code=code)  # Plaintext in database!
 
-# ✅ GOOD
+# âœ… GOOD
 code_hash = make_password(code)
 OTP.objects.create(code_hash=code_hash)  # Hashed
 ```
 
 **2. Send over secure channel:**
 ```python
-# ✅ Good channels:
+# âœ… Good channels:
 # - Email (HTTPS, encrypted inbox)
 # - SMS (encrypted by carrier)
 # - Push notification (encrypted)
 
-# ❌ Bad channels:
+# âŒ Bad channels:
 # - Plaintext email body
 # - HTTP (unencrypted)
 ```
 
 **3. Time-limit OTPs:**
 ```python
-# ✅ GOOD: 5-10 minute expiry
+# âœ… GOOD: 5-10 minute expiry
 expires_at = timezone.now() + timedelta(minutes=5)
 
-# ❌ BAD: No expiry
+# âŒ BAD: No expiry
 expires_at = None  # Code valid forever!
 ```
 
 **4. Rate limit OTP requests:**
 ```python
-# ✅ GOOD: Max 5 OTP requests per hour per user
+# âœ… GOOD: Max 5 OTP requests per hour per user
 OTP_requests_today = OTP.objects.filter(
     user=user,
     created_at__gte=timezone.now() - timedelta(hours=1)
@@ -675,7 +675,7 @@ if OTP_requests_today >= 5:
 
 **5. Attempt limiting:**
 ```python
-# ✅ GOOD: Max 3 failed attempts
+# âœ… GOOD: Max 3 failed attempts
 if otp.attempts >= 3:
     otp.mark_failed()
     user.lock_account(duration_minutes=30)  # Temporary lockout
@@ -700,18 +700,18 @@ TOTP = Time-based One-Time Password
 5. User enters code to prove they have the secret
 
 Advantages:
-✅ No internet needed (works offline)
-✅ No server needs to send OTP
-✅ Codes generated locally on phone
-✅ Fast (instant)
-✅ Cheap (no SMS cost)
-✅ Secure (HMAC-SHA1)
+âœ… No internet needed (works offline)
+âœ… No server needs to send OTP
+âœ… Codes generated locally on phone
+âœ… Fast (instant)
+âœ… Cheap (no SMS cost)
+âœ… Secure (HMAC-SHA1)
 
 Disadvantages:
-❌ Need to keep phone with app
-❌ Phone can be lost/stolen
-❌ Need backup codes for recovery
-❌ Time synchronization issues
+âŒ Need to keep phone with app
+âŒ Phone can be lost/stolen
+âŒ Need backup codes for recovery
+âŒ Time synchronization issues
 ```
 
 ### TOTP Algorithm:
@@ -726,13 +726,13 @@ def generate_totp_code(secret, current_timestamp=None):
     """Generate TOTP code"""
     if current_timestamp is None:
         current_timestamp = int(time.time())
-    
+
     # Time counter (30-second intervals)
     time_counter = current_timestamp // 30
-    
+
     # Convert counter to bytes
     counter_bytes = struct.pack('>Q', time_counter)
-    
+
     # HMAC-SHA1
     secret_bytes = b32decode(secret)
     hmac_hash = hmac.new(
@@ -740,15 +740,15 @@ def generate_totp_code(secret, current_timestamp=None):
         counter_bytes,
         hashlib.sha1
     ).digest()
-    
+
     # Extract 4-byte dynamic code
     offset = hmac_hash[-1] & 0xf
     code_int = struct.unpack('>I', hmac_hash[offset:offset + 4])[0]
     code_int = code_int & 0x7fffffff
-    
+
     # Get last 6 digits
     code = code_int % 1000000
-    
+
     return str(code).zfill(6)
 
 # User scans QR, phone generates codes automatically
@@ -767,7 +767,7 @@ import pyotp
 def verify_totp(secret, code, valid_window=1):
     """
     Verify TOTP code with clock skew tolerance
-    
+
     valid_window=1 means:
     - Accept codes from 30 seconds ago
     - Accept codes from now
@@ -790,7 +790,7 @@ result = verify_totp(secret, "123456", valid_window=1)
 
 ### 1. **Multiple MFA Methods (Defense in Depth)**
 ```python
-# ✅ GOOD: User can have multiple methods
+# âœ… GOOD: User can have multiple methods
 user.mfa_settings.totp_enabled = True    # TOTP primary
 user.mfa_settings.email_enabled = True   # Email backup
 user.mfa_settings.sms_enabled = True     # SMS backup
@@ -800,7 +800,7 @@ user.mfa_settings.sms_enabled = True     # SMS backup
 
 ### 2. **Backup Codes (Account Recovery)**
 ```python
-# ✅ GOOD: Generate 10 backup codes
+# âœ… GOOD: Generate 10 backup codes
 backup_codes = []
 for _ in range(10):
     code = generate_backup_code()
@@ -815,7 +815,7 @@ for _ in range(10):
 
 ### 3. **Rate Limiting OTP Requests**
 ```python
-# ✅ GOOD: Limit OTP generation
+# âœ… GOOD: Limit OTP generation
 if OTP.objects.filter(
     user=user,
     created_at__gte=timezone.now() - timedelta(hours=1)
@@ -825,7 +825,7 @@ if OTP.objects.filter(
 
 ### 4. **Attempt Limiting with Lockout**
 ```python
-# ✅ GOOD: Lock after 3 failed attempts
+# âœ… GOOD: Lock after 3 failed attempts
 if otp.attempts >= 3:
     user.lock_account(duration_minutes=30)
     send_security_alert(user, "3 failed MFA attempts")
@@ -833,7 +833,7 @@ if otp.attempts >= 3:
 
 ### 5. **Monitor Failed MFA Attempts**
 ```python
-# ✅ GOOD: Alert on suspicious activity
+# âœ… GOOD: Alert on suspicious activity
 failed_otps = OTP.objects.filter(
     user=user,
     is_used=False,
@@ -857,7 +857,7 @@ class WebAuthnCredential(models.Model):
     public_key = models.BinaryField()
     counter = models.PositiveIntegerField()
     transports = models.JSONField(default=list)
-    
+
     # Hardware security keys (Yubikey, etc)
     # Most secure MFA method
     # Also works as passwordless auth
@@ -885,14 +885,14 @@ class PushMFARequest(models.Model):
     user = models.ForeignKey(User, ...)
     device_token = models.CharField(max_length=500)
     challenge = models.CharField(max_length=255)
-    
+
     # Instead of entering code:
     # 1. Server sends push notification to phone
     # 2. User sees "Approve login from New York?"
     # 3. User taps "Approve"
     # 4. Phone confirms with server
     # 5. Login complete
-    
+
     # Faster than typing codes
     # Can see device/location context
     # Better UX
@@ -903,18 +903,18 @@ class PushMFARequest(models.Model):
 class RiskBasedOTP(models.Model):
     user = models.ForeignKey(User, ...)
     risk_score = models.IntegerField()  # 0-100
-    
+
     # Low risk (trusted device, normal location, normal time):
-    # → Don't send OTP, allow login
-    
+    # â†’ Don't send OTP, allow login
+
     # Medium risk (new device, unusual location):
-    # → Send email OTP (slower, more verification)
-    
+    # â†’ Send email OTP (slower, more verification)
+
     # High risk (impossible travel, multiple failed logins):
-    # → Send SMS OTP + require security questions
-    
+    # â†’ Send SMS OTP + require security questions
+
     # Critical risk:
-    # → Require strong authentication + support contact
+    # â†’ Require strong authentication + support contact
 ```
 
 ### 5. **Hardware Security Keys**
@@ -924,7 +924,7 @@ class SecurityKey(models.Model):
     key_type = models.CharField(max_length=50)  # Yubikey, etc
     key_id = models.CharField(max_length=255)
     public_key = models.BinaryField()
-    
+
     # Physical USB security key
     # Insert into computer, authenticate with physical button
     # Cannot be hacked remotely
@@ -937,32 +937,32 @@ class SecurityKey(models.Model):
 
 The **OTP** app provides comprehensive one-time password management:
 
-✅ **OTP Generation & Verification**
+âœ… **OTP Generation & Verification**
 - Time-limited codes (5-10 minutes)
 - Attempt tracking and lockout
 - Multiple purpose types
 - Hashed storage (never plaintext)
 
-✅ **TOTP/Google Authenticator Support**
+âœ… **TOTP/Google Authenticator Support**
 - Industry-standard algorithm
 - Works offline
 - No SMS costs
 - Backup codes for recovery
 
-✅ **Multiple MFA Methods**
+âœ… **Multiple MFA Methods**
 - Email OTP (worldwide, free)
 - SMS OTP (fast, familiar)
 - TOTP (most secure, offline)
 - Backup codes (recovery)
 
-✅ **Security Features**
+âœ… **Security Features**
 - Rate limiting
 - Attempt limiting
 - Account lockout
 - Challenge tracking
 - Recovery tracking
 
-✅ **Scalable Design**
+âœ… **Scalable Design**
 - Proper indexing
 - Automatic cleanup
 - Audit logging

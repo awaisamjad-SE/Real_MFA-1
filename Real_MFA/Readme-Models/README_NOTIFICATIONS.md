@@ -1,6 +1,6 @@
 # NOTIFICATIONS APP - Complete Documentation
 
-## 📋 Table of Contents
+## ðŸ“‹ Table of Contents
 1. [Overview](#overview)
 2. [Models](#models)
 3. [Notification Preferences](#notification-preferences)
@@ -195,7 +195,7 @@ costs = SMSNotification.objects.filter(
 )
 
 # Typical SMS costs: $0.01-$0.05 per SMS
-# 1M users × 2 SMS/month = 2M SMS = $20k-$100k/month
+# 1M users Ã— 2 SMS/month = 2M SMS = $20k-$100k/month
 ```
 
 ---
@@ -561,15 +561,15 @@ mfa_notif.mark_verified()
 
 ```
 1. NotificationConsent (GDPR - must have consent)
-   ↓
+   â†“
 2. NotificationBlocklist (User blocklist)
-   ↓
+   â†“
 3. DetailedNotificationPreference (Per-type settings)
-   ↓
+   â†“
 4. QuietHours (Don't disturb periods)
-   ↓
+   â†“
 5. NotificationPreference (Global settings)
-   ↓
+   â†“
 SEND NOTIFICATION
 ```
 
@@ -580,7 +580,7 @@ def should_send_notification(user, notification_type, channel):
     """
     Determine if notification should be sent
     """
-    
+
     # 1. Check GDPR consent
     consent = NotificationConsent.objects.get(
         user=user,
@@ -588,7 +588,7 @@ def should_send_notification(user, notification_type, channel):
     )
     if not consent.is_consented:
         return False  # User not consented
-    
+
     # 2. Check blocklist
     if NotificationBlocklist.objects.filter(
         user=user,
@@ -596,34 +596,34 @@ def should_send_notification(user, notification_type, channel):
         is_active=True
     ).exists():
         return False  # Sender blocked
-    
+
     # 3. Check detailed preference
     detail_pref = DetailedNotificationPreference.objects.get(
         user=user,
         notification_type=notification_type
     )
-    
+
     if channel == 'email' and not detail_pref.email_enabled:
         return False
     if channel == 'sms' and not detail_pref.sms_enabled:
         return False
-    
+
     # 4. Check quiet hours
     if should_respect_quiet_hours(detail_pref):
         if is_in_quiet_hours(user):
             if detail_pref.priority != 'high':
                 return False  # Delay until quiet hours end
-    
+
     # 5. Check frequency cap
     today_count = EmailNotification.objects.filter(
         user=user,
         notification_type=notification_type,
         created_at__date=today
     ).count()
-    
+
     if today_count >= detail_pref.max_per_day:
         return False  # Daily limit reached
-    
+
     # All checks passed
     return True
 ```
@@ -636,15 +636,15 @@ def should_send_notification(user, notification_type, channel):
 
 ```
 Pending (Queued)
-    ↓
+    â†“
 Sent (Provider accepted)
-    ↓
-Bounced (Invalid email) → FAILED
-    ↓
+    â†“
+Bounced (Invalid email) â†’ FAILED
+    â†“
 Delivered (User's mailbox)
-    ↓
+    â†“
 Opened (User opened email)
-    ↓
+    â†“
 Clicked (User clicked link)
 ```
 
@@ -652,13 +652,13 @@ Clicked (User clicked link)
 
 ```
 Pending (Queued)
-    ↓
+    â†“
 Sent (Provider accepted)
-    ↓
+    â†“
 Delivered (Phone received)
-    ↓
+    â†“
 Failed (Network error)
-    ↓
+    â†“
 Undelivered (Invalid number)
 ```
 
@@ -688,27 +688,27 @@ for email in failed_emails:
 
 ```
 User tries to login
-    ↓
+    â†“
 System detects MFA required
-    ↓
+    â†“
 System generates OTP code (6 digits)
-    ↓
+    â†“
 System hashes OTP
-    ↓
+    â†“
 System creates MFANotification (pending)
-    ↓
+    â†“
 System sends email to user
-    ↓
+    â†“
 MFANotification marked as sent
-    ↓
+    â†“
 User receives email: "Your code: 123456"
-    ↓
+    â†“
 User enters code in form
-    ↓
+    â†“
 System verifies code matches hash
-    ↓
+    â†“
 MFANotification marked as verified
-    ↓
+    â†“
 User logged in!
 ```
 
@@ -717,11 +717,11 @@ User logged in!
 ```python
 # 1. Never send plaintext code
 code = "123456"
-email_body = f"Your code is: {code}"  # ✅ OK - in email
+email_body = f"Your code is: {code}"  # âœ… OK - in email
 
 # But DON'T store plaintext
 code_hash = make_password(code)
-mfa_notif.code_hash = code_hash  # ✅ OK - hashed in DB
+mfa_notif.code_hash = code_hash  # âœ… OK - hashed in DB
 
 # 2. Time limit OTPs
 mfa_notif.expires_at = timezone.now() + timedelta(minutes=5)
@@ -808,10 +808,10 @@ NotificationConsent.objects.filter(
 
 ### 1. **Always Get Consent (GDPR)**
 ```python
-# ❌ BAD: Send emails without consent
+# âŒ BAD: Send emails without consent
 EmailNotification.objects.create(user=user, ...)
 
-# ✅ GOOD: Check consent first
+# âœ… GOOD: Check consent first
 consent = NotificationConsent.objects.get(
     user=user,
     consent_type='marketing'
@@ -822,17 +822,17 @@ if consent.is_consented:
 
 ### 2. **Hash Sensitive Data**
 ```python
-# ❌ BAD: Store plaintext OTP
+# âŒ BAD: Store plaintext OTP
 mfa_notif.otp_code = "123456"
 
-# ✅ GOOD: Hash before storing
+# âœ… GOOD: Hash before storing
 otp_hash = make_password("123456")
 mfa_notif.code_hash = otp_hash
 ```
 
 ### 3. **Implement Retry Logic**
 ```python
-# ✅ GOOD: Retry failed notifications
+# âœ… GOOD: Retry failed notifications
 failed = EmailNotification.objects.filter(
     status='failed',
     retry_count__lt=3
@@ -848,7 +848,7 @@ for notif in failed:
 
 ### 4. **Track Delivery**
 ```python
-# ✅ GOOD: Use webhooks from email provider
+# âœ… GOOD: Use webhooks from email provider
 # Provider calls: POST /webhooks/email/bounce
 # We mark email as bounced and disable user's email
 
@@ -856,7 +856,7 @@ def handle_email_bounce(email, reason):
     EmailNotification.objects.filter(
         to_email=email
     ).update(status='bounced')
-    
+
     # Disable email notifications for this user
     user = User.objects.get(email=email)
     pref = DetailedNotificationPreference.objects.get(
@@ -869,7 +869,7 @@ def handle_email_bounce(email, reason):
 
 ### 5. **Rate Limit Notifications**
 ```python
-# ✅ GOOD: Don't spam users
+# âœ… GOOD: Don't spam users
 today = timezone.now().date()
 count = EmailNotification.objects.filter(
     user=user,
@@ -897,7 +897,7 @@ class InAppNotification(models.Model):
     user = models.ForeignKey(User, ...)
     message = models.TextField()
     is_read = models.BooleanField(default=False)
-    
+
     # Show popup in user's dashboard
     # No email/SMS needed
     # Instant delivery
@@ -908,7 +908,7 @@ class InAppNotification(models.Model):
 class PushNotification(models.Model):
     user = models.ForeignKey(User, ...)
     device_token = models.CharField(max_length=500)
-    
+
     # Send to mobile app
     # Works even if app not open
     # Rich notifications with images
@@ -931,7 +931,7 @@ class NotificationTemplate(models.Model):
     subject = models.CharField(max_length=255)
     email_template = models.TextField()  # HTML template
     sms_template = models.TextField()   # Plain text template
-    
+
     # Use Jinja2 templating
     # {{ code }} = rendered to 123456
     # {{ name }} = rendered to John
@@ -955,32 +955,32 @@ class NotificationAnalytics(models.Model):
 
 The **NOTIFICATIONS** app provides:
 
-✅ **Multi-Channel Delivery**
+âœ… **Multi-Channel Delivery**
 - Email (SMTP, SendGrid, AWS SES)
 - SMS (Twilio, AWS SNS, Vonage)
 - In-app (future)
 - Push (future)
 
-✅ **User Control**
+âœ… **User Control**
 - Global preferences
 - Per-notification-type settings
 - Quiet hours
 - Blocklist
 - Frequency caps
 
-✅ **GDPR Compliance**
+âœ… **GDPR Compliance**
 - Consent tracking
 - Opt-in for marketing
 - Easy unsubscribe
 - Data retention policies
 
-✅ **Reliability**
+âœ… **Reliability**
 - Delivery tracking
 - Retry logic
 - Error handling
 - Webhook integration
 
-✅ **Analytics**
+âœ… **Analytics**
 - Open rates
 - Click rates
 - Bounce rates

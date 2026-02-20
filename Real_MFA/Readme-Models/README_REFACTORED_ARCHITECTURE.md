@@ -10,45 +10,45 @@ Device and Session models have been extracted from the **accounts** app into ded
 
 ```
 accounts/
-  ├── models.py (User, Profile, MFASettings, MFAMethodPreference, 
-  │             MFAChangeLog, PasswordHistory, RefreshTokenRecord, AuditLog)
-  ├── admin.py
-  ├── views.py
-  └── migrations/
+  â”œâ”€â”€ models.py (User, Profile, MFASettings, MFAMethodPreference,
+  â”‚             MFAChangeLog, PasswordHistory, RefreshTokenRecord, AuditLog)
+  â”œâ”€â”€ admin.py
+  â”œâ”€â”€ views.py
+  â””â”€â”€ migrations/
 
-devices/  ✨ NEW APP
-  ├── models.py (Device, TrustedDevice)
-  ├── admin.py
-  ├── views.py
-  └── migrations/
+devices/  âœ¨ NEW APP
+  â”œâ”€â”€ models.py (Device, TrustedDevice)
+  â”œâ”€â”€ admin.py
+  â”œâ”€â”€ views.py
+  â””â”€â”€ migrations/
 
-sessions/  ✨ NEW APP
-  ├── models.py (Session)
-  ├── admin.py
-  ├── views.py
-  └── migrations/
+sessions/  âœ¨ NEW APP
+  â”œâ”€â”€ models.py (Session)
+  â”œâ”€â”€ admin.py
+  â”œâ”€â”€ views.py
+  â””â”€â”€ migrations/
 
 otp/
-  ├── models.py
-  ├── admin.py
-  └── ...
+  â”œâ”€â”€ models.py
+  â”œâ”€â”€ admin.py
+  â””â”€â”€ ...
 
 notifications/
-  ├── models.py
-  ├── admin.py
-  └── ...
+  â”œâ”€â”€ models.py
+  â”œâ”€â”€ admin.py
+  â””â”€â”€ ...
 
 audit_log/
-  ├── models.py
-  ├── admin.py
-  └── ...
+  â”œâ”€â”€ models.py
+  â”œâ”€â”€ admin.py
+  â””â”€â”€ ...
 ```
 
 ---
 
 ## Models Location Changes
 
-### ✅ MOVED TO DEVICES APP
+### âœ… MOVED TO DEVICES APP
 
 ```python
 # From: accounts/models.py
@@ -68,7 +68,7 @@ class TrustedDevice(TimeStampedModel, SoftDeleteModel):
 
 **Reason:** Device management is a specialized concern separate from user account management.
 
-### ✅ MOVED TO SESSIONS APP
+### âœ… MOVED TO SESSIONS APP
 
 ```python
 # From: accounts/models.py
@@ -83,7 +83,7 @@ class Session(TimeStampedModel):
 
 **Reason:** Session lifecycle is independent and benefits from isolated management and scaling.
 
-### ✅ REMAINED IN ACCOUNTS APP
+### âœ… REMAINED IN ACCOUNTS APP
 
 ```python
 # Stays in: accounts/models.py
@@ -188,9 +188,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'accounts',     # ✨ NEW
-    'devices',      # ✨ NEW
-    'sessions',     # ✨ NEW
+    'accounts',     # âœ¨ NEW
+    'devices',      # âœ¨ NEW
+    'sessions',     # âœ¨ NEW
     'otp',
     'notifications',
     'audit_log',
@@ -203,34 +203,34 @@ INSTALLED_APPS = [
 ## Relationship Diagram (After Refactoring)
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   ACCOUNTS APP                      │
-│ (User, Profile, MFASettings, PasswordHistory)       │
-└────────────────┬──────────────────────────────────┬─┘
-                 │ OneToOne                        │ OneToOne
-        ┌────────▼─────────┐            ┌──────────▼────────┐
-        │   DEVICES APP    │            │  SESSIONS APP     │
-        │ (Device,         │            │ (Session)         │
-        │  TrustedDevice)  │            │                   │
-        │                 │            │ - user FK → User  │
-        │ - user FK       │            │ - device FK       │
-        │   → User        │            │   → Device        │
-        │                 │            └───────────────────┘
-        └────────┬────────┘
-                 │
-        ┌────────┴──────────┐
-        │                   │
-    ┌───▼────┐         ┌────▼────┐
-    │OTP APP │         │AUDIT_LOG│
-    │(MFA)   │         │APP      │
-    └────────┘         └────┬────┘
-                             │
-                    ┌────────┴─────────┐
-                    │ Audit Models:    │
-                    │ - Session Audit  │
-                    │ - Device Audit   │
-                    │ - MFA Audit      │
-                    └──────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                   ACCOUNTS APP                      â”‚
+â”‚ (User, Profile, MFASettings, PasswordHistory)       â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”˜
+                 â”‚ OneToOne                        â”‚ OneToOne
+        â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”            â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”
+        â”‚   DEVICES APP    â”‚            â”‚  SESSIONS APP     â”‚
+        â”‚ (Device,         â”‚            â”‚ (Session)         â”‚
+        â”‚  TrustedDevice)  â”‚            â”‚                   â”‚
+        â”‚                 â”‚            â”‚ - user FK â†’ User  â”‚
+        â”‚ - user FK       â”‚            â”‚ - device FK       â”‚
+        â”‚   â†’ User        â”‚            â”‚   â†’ Device        â”‚
+        â”‚                 â”‚            â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+        â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                 â”‚
+        â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+        â”‚                   â”‚
+    â”Œâ”€â”€â”€â–¼â”€â”€â”€â”€â”         â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”
+    â”‚OTP APP â”‚         â”‚AUDIT_LOGâ”‚
+    â”‚(MFA)   â”‚         â”‚APP      â”‚
+    â””â”€â”€â”€â”€â”€â”€â”€â”€â”˜         â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”˜
+                             â”‚
+                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                    â”‚ Audit Models:    â”‚
+                    â”‚ - Session Audit  â”‚
+                    â”‚ - Device Audit   â”‚
+                    â”‚ - MFA Audit      â”‚
+                    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
@@ -392,14 +392,14 @@ from devices.models import Device
 
 ## Summary Checklist
 
-✅ Device model moved to devices/models.py
-✅ TrustedDevice model moved to devices/models.py
-✅ Session model moved to sessions/models.py
-✅ All ForeignKey references updated to string references
-✅ accounts/models.py cleaned up
-✅ config/settings.py updated with new INSTALLED_APPS
-✅ otp/models.py updated with string references
-✅ audit_log/models.py updated with string references
+âœ… Device model moved to devices/models.py
+âœ… TrustedDevice model moved to devices/models.py
+âœ… Session model moved to sessions/models.py
+âœ… All ForeignKey references updated to string references
+âœ… accounts/models.py cleaned up
+âœ… config/settings.py updated with new INSTALLED_APPS
+âœ… otp/models.py updated with string references
+âœ… audit_log/models.py updated with string references
 
 ---
 

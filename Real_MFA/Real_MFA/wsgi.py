@@ -8,9 +8,18 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 """
 
 import os
+import sys
 
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Real_MFA.settings')
 
+# Add project to path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, BASE_DIR)
+
 application = get_wsgi_application()
+
+# Optional: Add middleware for production
+# from whitenoise.django import DjangoWhiteNoise
+# application = DjangoWhiteNoise(application)

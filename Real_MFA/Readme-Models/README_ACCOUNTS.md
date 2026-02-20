@@ -1,6 +1,6 @@
 # ACCOUNTS APP - Complete Documentation
 
-## 📋 Table of Contents
+## ðŸ“‹ Table of Contents
 1. [Overview](#overview)
 2. [Models](#models)
 3. [Relationships](#relationships)
@@ -482,10 +482,10 @@ revocation_reason (String)     # Why revoked?
 
 **Token Rotation Flow:**
 ```
-1. User logs in → RefreshToken created (parent_jti = null)
-2. User refreshes → New token created (parent_jti = old token's jti)
+1. User logs in â†’ RefreshToken created (parent_jti = null)
+2. User refreshes â†’ New token created (parent_jti = old token's jti)
 3. Old token marked as "rotated"
-4. If old token is used again → BREACH DETECTED (rotation chain broken)
+4. If old token is used again â†’ BREACH DETECTED (rotation chain broken)
 ```
 
 ---
@@ -531,55 +531,55 @@ resolved_by (ForeignKey)       # Which admin resolved?
 
 ### ER Diagram (Text Format):
 ```
-User (1) ──────────── (1) MFASettings
-  ├─ (1) ──────────── (1) Profile
-  ├─ (1) ──────────── (1) NotificationPreferences
-  ├─ (1) ──────────── (*) MFAMethodPreference
-  ├─ (1) ──────────── (*) MFAChangeLog
-  ├─ (1) ──────────── (*) Device
-  ├─ (1) ──────────── (*) TrustedDevice
-  ├─ (1) ──────────── (*) Session
-  ├─ (1) ──────────── (*) PasswordHistory
-  ├─ (1) ──────────── (*) RefreshTokenRecord
-  ├─ (1) ──────────── (*) AuditLog
-  └─ (1) ──────────── (*) Backup Codes, OTPs, etc.
+User (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (1) MFASettings
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (1) Profile
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (1) NotificationPreferences
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) MFAMethodPreference
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) MFAChangeLog
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) Device
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) TrustedDevice
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) Session
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) PasswordHistory
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) RefreshTokenRecord
+  â”œâ”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) AuditLog
+  â””â”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) Backup Codes, OTPs, etc.
 
-Session (1) ─────── (0..1) Device
-  └─ (1) ──────────── (*) RefreshTokenRecord
+Session (1) â”€â”€â”€â”€â”€â”€â”€ (0..1) Device
+  â””â”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) RefreshTokenRecord
 
-Device (1) ──────────── (*) TrustedDevice
-  └─ (1) ──────────── (*) Session
+Device (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) TrustedDevice
+  â””â”€ (1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ (*) Session
 
-TrustedDevice (1) ───── (1) Device
+TrustedDevice (1) â”€â”€â”€â”€â”€ (1) Device
 ```
 
 ### Key Relationships:
 
-**User → MFASettings:** OneToOne
+**User â†’ MFASettings:** OneToOne
 - Every user has exactly one MFA settings record
 - Created automatically when user registers
 - Stores global MFA preferences
 
-**User → MFAMethodPreference:** OneToMany
+**User â†’ MFAMethodPreference:** OneToMany
 - User can have 3 method preferences (TOTP, Email, SMS)
 - Each allows independent configuration
 - Supports multi-method MFA
 
-**User → Device:** OneToMany
+**User â†’ Device:** OneToMany
 - User can have multiple devices
 - Unique together on (user, fingerprint_hash)
 - Device activity tracked per user
 
-**Device → Session:** OneToMany (optional)
+**Device â†’ Session:** OneToMany (optional)
 - Multiple sessions can come from same device
 - Session can exist without device (API clients)
 
-**Session → RefreshTokenRecord:** OneToMany
+**Session â†’ RefreshTokenRecord:** OneToMany
 - Each session generates refresh tokens
 - Token rotation tracked
 - Breach detection via rotation chain
 
-**Device → TrustedDevice:** OneToOne
+**Device â†’ TrustedDevice:** OneToOne
 - Trusted status tracked separately
 - Can revoke trust without deleting device
 - Soft delete enabled
@@ -598,23 +598,23 @@ CREATE TABLE users (
     username VARCHAR(150) NOT NULL,
     password VARCHAR(128) NOT NULL,
     role VARCHAR(10) NOT NULL DEFAULT 'user',
-    
+
     -- Security
     email_verified BOOLEAN DEFAULT FALSE,
     email_verified_at TIMESTAMP NULL,
     mfa_enabled BOOLEAN DEFAULT FALSE,
     mfa_method VARCHAR(20),
-    
+
     -- Account lockout
     failed_login_attempts INT DEFAULT 0,
     account_locked_until TIMESTAMP NULL,
-    
+
     -- Tracking
     last_login_ip VARCHAR(45) NULL,
     last_login_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Soft delete
     is_deleted BOOLEAN DEFAULT FALSE,
     deleted_at TIMESTAMP NULL
@@ -667,18 +667,18 @@ Total Year 2+:            ~18 GB/year (audit only)
 
 ### UUID vs AutoIncrement:
 ```python
-# ❌ BAD: Sequential IDs expose data
-# User 1, 2, 3... → Attacker knows how many users
+# âŒ BAD: Sequential IDs expose data
+# User 1, 2, 3... â†’ Attacker knows how many users
 id = models.AutoField(primary_key=True)
 
-# ✅ GOOD: UUID is random and cannot be guessed
+# âœ… GOOD: UUID is random and cannot be guessed
 # 550e8400-e29b-41d4-a716-446655440000
 id = models.UUIDField(primary_key=True, default=uuid.uuid4)
 ```
 
 ### Email as Login Identifier:
 ```python
-# ✅ Use email (unique, human-readable)
+# âœ… Use email (unique, human-readable)
 USERNAME_FIELD = 'email'
 email = models.EmailField(unique=True, db_index=True)
 
@@ -711,9 +711,9 @@ ROLE_CHOICES = [
 ]
 
 # Automatically sets permissions:
-# Admin → is_superuser=True, is_staff=True
-# Manager → is_superuser=False, is_staff=True
-# User → is_superuser=False, is_staff=False
+# Admin â†’ is_superuser=True, is_staff=True
+# Manager â†’ is_superuser=False, is_staff=True
+# User â†’ is_superuser=False, is_staff=False
 ```
 
 ---
@@ -784,10 +784,10 @@ session.increment_requests()  # Track API calls
 
 ### 1. **Always Use UUIDs for IDs**
 ```python
-# ✅ GOOD
+# âœ… GOOD
 id = models.UUIDField(primary_key=True, default=uuid.uuid4)
 
-# ❌ BAD
+# âŒ BAD
 id = models.AutoField(primary_key=True)  # Predictable
 ```
 
@@ -804,27 +804,27 @@ class Meta:
 ### 3. **Use Soft Deletes for Compliance**
 ```python
 # Don't hard delete
-device.delete()  # ❌ Data gone forever
+device.delete()  # âŒ Data gone forever
 
 # Use soft delete
-device.soft_delete()  # ✅ Data retained, marked deleted
+device.soft_delete()  # âœ… Data retained, marked deleted
 # Query: Device.objects.filter(is_deleted=False)
 ```
 
 ### 4. **Hash Sensitive Data**
 ```python
-# ❌ DON'T: Store plaintext passwords
+# âŒ DON'T: Store plaintext passwords
 password_hash = models.CharField(max_length=255)
 self.password_hash = password
 
-# ✅ DO: Use Django's password hashers
+# âœ… DO: Use Django's password hashers
 from django.contrib.auth.hashers import make_password
 self.password = make_password(password)
 ```
 
 ### 5. **Track Timestamps**
 ```python
-# ✅ GOOD: Track all important times
+# âœ… GOOD: Track all important times
 email_verified_at = models.DateTimeField(null=True, blank=True)
 last_login_at = models.DateTimeField(null=True, blank=True)
 password_changed_at = models.DateTimeField(null=True, blank=True)
@@ -837,34 +837,34 @@ password_changed_at = models.DateTimeField(null=True, blank=True)
 
 ### 6. **Use OneToOne for Single Relationships**
 ```python
-# ✅ GOOD: User has exactly one profile
+# âœ… GOOD: User has exactly one profile
 user_profile = models.OneToOneField(User, ...)
 
-# ❌ BAD: If user might not have profile
+# âŒ BAD: If user might not have profile
 user_profile = models.ForeignKey(User, ...)
 ```
 
 ### 7. **Use Foreign Keys with Cascading**
 ```python
-# ✅ DELETE CASCADE: When user deleted, delete their devices
+# âœ… DELETE CASCADE: When user deleted, delete their devices
 device = models.ForeignKey(User, on_delete=models.CASCADE)
 
-# ✅ SET_NULL: Keep sessions when device deleted
+# âœ… SET_NULL: Keep sessions when device deleted
 session_device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
 
-# ❌ Don't use PROTECT unless you have good reason
+# âŒ Don't use PROTECT unless you have good reason
 ```
 
 ### 8. **Implement Query Optimization**
 ```python
-# ❌ N+1 query problem
+# âŒ N+1 query problem
 for user in User.objects.all():
     print(user.profile.timezone)  # Query per user!
 
-# ✅ Use select_related for OneToOne
+# âœ… Use select_related for OneToOne
 users = User.objects.select_related('profile')
 
-# ✅ Use prefetch_related for OneToMany
+# âœ… Use prefetch_related for OneToMany
 users = User.objects.prefetch_related('devices')
 ```
 
@@ -879,7 +879,7 @@ class PushNotificationMFA(models.Model):
     user = models.OneToOneField(User, ...)
     push_device_token = models.CharField(max_length=500)
     is_verified = models.BooleanField(default=False)
-    
+
     # Send push notification instead of SMS/Email
     # Faster, doesn't cost money
     # Better UX than entering codes
@@ -893,7 +893,7 @@ class BiometricAuth(models.Model):
     face_data = models.BinaryField()         # Encrypted
     iris_data = models.BinaryField()         # Encrypted
     is_enabled = models.BooleanField(default=False)
-    
+
     # For mobile apps (fingerprint, face ID)
     # No codes to enter, faster, more secure
 ```
@@ -904,7 +904,7 @@ class PasswordlessAuth(models.Model):
     user = models.OneToOneField(User, ...)
     magic_link_enabled = models.BooleanField(default=False)
     passkey_enabled = models.BooleanField(default=False)
-    
+
     # Magic links: "Click here to login"
     # Passkeys: WebAuthn standard
     # No password needed!
@@ -919,7 +919,7 @@ class LocationHistory(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    
+
     def is_impossible_travel(self):
         """
         Check if user traveled too far too fast
@@ -928,15 +928,15 @@ class LocationHistory(models.Model):
         last_location = LocationHistory.objects.filter(
             user=self.user
         ).order_by('-timestamp').first()
-        
+
         if not last_location:
             return False
-            
+
         distance = calculate_distance(
             last_location.latitude, last_location.longitude,
             self.latitude, self.longitude
         )
-        
+
         # Max speed: ~900 mph for commercial flights
         max_distance = (900 * time_diff_hours)
         return distance > max_distance
@@ -948,7 +948,7 @@ class RiskAssessment(models.Model):
     user = models.ForeignKey(User, ...)
     session = models.ForeignKey(Session, ...)
     risk_score = models.IntegerField(0-100)
-    
+
     # Factors:
     # - Is device trusted? (-20 points)
     # - Is location normal? (-10 points)
@@ -957,7 +957,7 @@ class RiskAssessment(models.Model):
     # - Is impossible travel? (+50 points)
     # - Multiple failed logins? (+30 points)
     # - Unusual user agent? (+10 points)
-    
+
     # Actions based on risk:
     # - risk < 20: Allow login
     # - 20 < risk < 50: Require MFA
@@ -969,14 +969,14 @@ class RiskAssessment(models.Model):
 ```python
 class AccountTakeoverDetection(models.Model):
     user = models.ForeignKey(User, ...)
-    
+
     # Detect if attacker took over account by:
     # - Change primary email to new address
     # - Disable MFA
     # - Create API key
     # - Access from new location + device
     # - Too many password reset attempts
-    
+
     def detect_takeover(self):
         """
         ML model trained on:
@@ -992,13 +992,13 @@ class AccountTakeoverDetection(models.Model):
 ```python
 class SessionShare Detection(models.Model):
     user = models.ForeignKey(User, ...)
-    
+
     # Detect if user shared session with others:
     # - Multiple IPs using same refresh_jti
     # - Multiple user agents from same session
     # - Concurrent requests from different cities
     # - Requests from known proxy IPs
-    
+
     def is_session_shared(self, session):
         """Detect if session being used by multiple people"""
         pass
@@ -1012,7 +1012,7 @@ class ExternalAuth(models.Model):
     provider_id = models.CharField(max_length=255)
     email = models.EmailField()  # From provider
     name = models.CharField(max_length=255)
-    
+
     # OAuth2 / OpenID Connect
     # Login with Google/GitHub/Facebook
     # Faster for users
@@ -1026,7 +1026,7 @@ class DeviceHealth(models.Model):
     is_jailbroken = models.BooleanField(default=False)  # iOS jailbreak
     is_rooted = models.BooleanField(default=False)      # Android root
     has_debugger = models.BooleanField(default=False)
-    
+
     # For mobile apps:
     # - Can't protect from jailbroken/rooted devices
     # - Flag them, require stronger auth
@@ -1040,7 +1040,7 @@ class DeviceRateLimit(models.Model):
     requests_per_minute = models.IntegerField(default=60)
     requests_per_hour = models.IntegerField(default=3600)
     requests_per_day = models.IntegerField(default=86400)
-    
+
     # Different limits per device
     # Trusted devices: higher limits
     # Suspicious devices: lower limits
@@ -1053,7 +1053,7 @@ class DeviceRateLimit(models.Model):
 
 The **ACCOUNTS** app provides a comprehensive, secure foundation for user authentication and management. It includes:
 
-✅ **Security Features:**
+âœ… **Security Features:**
 - Role-based access control
 - Account lockout mechanisms
 - Password history tracking
@@ -1062,19 +1062,19 @@ The **ACCOUNTS** app provides a comprehensive, secure foundation for user authen
 - MFA settings and preferences
 - Comprehensive audit logging
 
-✅ **Scalability:**
+âœ… **Scalability:**
 - UUID primary keys
 - Proper indexing strategy
 - Soft deletes for data retention
 - Prepared for millions of users
 
-✅ **Flexibility:**
+âœ… **Flexibility:**
 - Support for 3 MFA methods
 - Per-method configuration
 - Trusted device management
 - Granular audit logging
 
-✅ **Future-Ready:**
+âœ… **Future-Ready:**
 - Extensible for biometrics
 - Risk-based authentication
 - Passwordless auth

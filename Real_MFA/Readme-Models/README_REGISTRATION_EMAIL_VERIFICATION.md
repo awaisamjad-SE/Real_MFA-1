@@ -97,7 +97,7 @@ Example response:
 
 ### Token storage
 
-- A verification token is generated using Django’s `default_token_generator`.
+- A verification token is generated using Djangoâ€™s `default_token_generator`.
 - The token is stored under the key:
   - `verification_token:<user_id>`
 
@@ -206,18 +206,18 @@ The accounts admin is configured to:
 
 ## Troubleshooting
 
-### “No email received”
+### â€œNo email receivedâ€
 
 - Make sure `.env` is loaded (use `py manage.py shell` and print `settings.EMAIL_HOST_USER`).
 - If using Gmail, use an App Password.
 - Check Gmail spam.
 
-### “Redis connection refused”
+### â€œRedis connection refusedâ€
 
 - Start Redis on `localhost:6379`, OR
 - In dev, the project will fall back to Django cache.
 
-### “Verification link works in email but browser doesn’t verify”
+### â€œVerification link works in email but browser doesnâ€™t verifyâ€
 
 The email link is a frontend link. The backend verification is:
 

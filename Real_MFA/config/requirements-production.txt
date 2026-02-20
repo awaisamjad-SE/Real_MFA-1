@@ -1,0 +1,64 @@
+# requirements-production.txt
+# Production dependencies for Real_MFA
+# Install: pip install -r requirements-production.txt
+
+# Django & Core
+Django==5.0
+djangorestframework==3.14.0
+django-cors-headers==4.3.0
+django-environ==0.21.0
+python-decouple==3.8
+
+# Database
+psycopg2-binary==2.9.9
+psycopg==3.1.13
+
+# Caching & Queue
+redis==5.0.1
+django-redis==5.4.0
+celery==5.3.4
+django-celery-beat==2.5.0
+django-celery-results==2.5.1
+
+# Authentication & Security
+djangorestframework-simplejwt==5.3.2
+django-filter==23.5
+django-ratelimit==4.1.0
+cryptography==41.0.7
+PyJWT==2.8.1
+
+# Email
+django-anymail==10.1
+django-templated-email==3.0.1
+
+# OTP/MFA
+pyotp==2.9.0
+qrcode==7.4.2
+pillow==10.1.0
+
+# HTTP & API
+requests==2.31.0
+httpx==0.25.2
+urllib3==2.1.0
+
+# Data & Serialization
+pydantic==2.5.3
+validators==0.22.0
+
+# Server
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Monitoring & Logging
+sentry-sdk==1.39.2
+django-extensions==3.2.3
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+Pillow==10.1.0
+cryptography==41.0.7
+
+# Development dependencies (optional in production, comment out if needed)
+# django-debug-toolbar==4.2.0
+# django-extensions==3.2.3

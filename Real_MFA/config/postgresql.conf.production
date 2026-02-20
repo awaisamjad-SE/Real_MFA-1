@@ -1,0 +1,80 @@
+# PostgreSQL Database Configuration for Real_MFA
+# Location: /etc/postgresql/16/main/postgresql.conf (Ubuntu 24.04)
+# Recommended settings for production Django application
+
+# =============================================================================
+# CONNECTION SETTINGS
+# =============================================================================
+# Listen on localhost only for security
+listen_addresses = 'localhost'
+port = 5432
+max_connections = 100
+reserved_connections = 3
+
+# =============================================================================
+# MEMORY & PERFORMANCE
+# =============================================================================
+# Roughly 1/4 of system RAM (adjust based on your droplet specs)
+shared_buffers = 256MB
+effective_cache_size = 1GB
+maintenance_work_mem = 64MB
+work_mem = 16MB
+wal_buffers = 16MB
+
+# =============================================================================
+# QUERY PLANNING
+# =============================================================================
+random_page_cost = 1.1
+effective_io_concurrency = 200
+
+# =============================================================================
+# CHECKPOINTS & WAL
+# =============================================================================
+checkpoint_timeout = 15min
+checkpoint_completion_target = 0.9
+wal_level = replica
+max_wal_senders = 3
+wal_keep_segments = 64
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+logging_collector = on
+log_directory = '/var/log/postgresql'
+log_filename = 'postgresql-%Y-%m-%d.log'
+log_statement = 'all'
+log_duration = on
+log_min_duration_statement = 1000  # Log queries taking > 1 second
+log_connections = on
+log_disconnections = on
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+
+# =============================================================================
+# CLIENT CONNECTION SETTINGS
+# =============================================================================
+datestyle = 'iso, mdy'
+timezone = 'UTC'
+lc_messages = 'en_US.UTF-8'
+lc_monetary = 'en_US.UTF-8'
+lc_numeric = 'en_US.UTF-8'
+lc_time = 'en_US.UTF-8'
+default_text_search_config = 'pg_catalog.english'
+
+# =============================================================================
+# AUTOVACUUM SETTINGS
+# =============================================================================
+autovacuum = on
+autovacuum_naptime = 10s
+autovacuum_vacuum_threshold = 50
+autovacuum_analyze_threshold = 50
+autovacuum_vacuum_scale_factor = 0.1
+autovacuum_analyze_scale_factor = 0.05
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+# Set in pg_hba.conf instead - ensure only local connections
+# Host authentication is configured in /etc/postgresql/16/main/pg_hba.conf
+
+# Minimum password encryption
+password_encryption = scram-sha-256

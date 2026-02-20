@@ -1,0 +1,31 @@
+[Unit]
+Description=Real_MFA Gunicorn Application Server
+After=network.target postgresql.service redis-server.service
+
+[Service]
+Type=notify
+User=realuser
+Group=www-data
+WorkingDirectory=/home/realuser/real_mfa/Real_MFA
+Environment="PATH=/home/realuser/real_mfa/venv/bin"
+EnvironmentFile=/home/realuser/real_mfa/Real_MFA/.env
+
+# Gunicorn command
+ExecStart=/home/realuser/real_mfa/venv/bin/gunicorn \
+    --workers 3 \
+    --worker-class sync \
+    --bind unix:/run/gunicorn_real_mfa.sock \
+    --timeout 60 \
+    --access-logfile /var/log/real_mfa_gunicorn_access.log \
+    --error-logfile /var/log/real_mfa_gunicorn_error.log \
+    --log-level info \
+    Real_MFA.wsgi:application
+
+# Process management
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,27 @@
+[Unit]
+Description=Real_MFA Celery Beat Periodic Task Scheduler
+After=network.target redis-server.service
+
+[Service]
+Type=simple
+User=realuser
+Group=www-data
+WorkingDirectory=/home/realuser/real_mfa/Real_MFA
+Environment="PATH=/home/realuser/real_mfa/venv/bin"
+EnvironmentFile=/home/realuser/real_mfa/Real_MFA/.env
+
+# Celery beat command
+ExecStart=/home/realuser/real_mfa/venv/bin/celery -A Real_MFA beat \
+    --loglevel=info \
+    --logfile=/var/log/real_mfa_celery_beat.log \
+    --pidfile=/run/celery_beat.pid \
+    --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+# Process management
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

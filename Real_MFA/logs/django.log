@@ -5342,3 +5342,243 @@ INFO 2026-01-09 14:54:54,074 autoreload 21124 17952 C:\Users\Black box\OneDrive\
 INFO 2026-01-09 14:54:59,392 autoreload 13516 2820 Watching for file changes with StatReloader
 INFO 2026-01-09 14:55:33,542 autoreload 13516 2820 C:\Users\Black box\OneDrive\Documents\GitHub\Real_MFA\Real_MFA\Real_MFA\settings.py changed, reloading.
 INFO 2026-01-09 14:55:37,516 autoreload 11252 12164 Watching for file changes with StatReloader
+INFO 2026-02-20 01:49:25,990 autoreload 29088 5436 Watching for file changes with StatReloader
+INFO 2026-02-20 01:50:26,602 autoreload 5628 28288 Watching for file changes with StatReloader
+WARNING 2026-02-20 01:50:39,120 log 5628 22724 Not Found: /
+WARNING 2026-02-20 01:50:39,122 basehttp 5628 22724 "GET / HTTP/1.1" 404 2957
+INFO 2026-02-20 01:50:44,028 basehttp 5628 22724 "GET /admin/ HTTP/1.1" 302 0
+INFO 2026-02-20 01:50:44,128 basehttp 5628 22724 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4178
+INFO 2026-02-20 01:50:44,210 basehttp 5628 22724 "GET /static/admin/css/login.css HTTP/1.1" 304 0
+INFO 2026-02-20 01:50:50,312 basehttp 5628 22724 "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2026-02-20 01:50:50,402 basehttp 5628 22724 "GET /admin/ HTTP/1.1" 200 21426
+INFO 2026-02-20 01:50:52,479 basehttp 5628 22724 "GET /admin/accounts/user/ HTTP/1.1" 200 53367
+INFO 2026-02-20 01:50:52,603 basehttp 5628 22724 "GET /admin/jsi18n/ HTTP/1.1" 200 3343
+INFO 2026-02-20 01:52:58,980 basehttp 5628 30044 "OPTIONS /api/auth/register/ HTTP/1.1" 200 0
+ERROR 2026-02-20 01:53:03,147 log 5628 30044 Internal Server Error: /api/auth/register/
+Traceback (most recent call last):
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\connection.py", line 855, in connect_check_health
+    sock = self.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\retry.py", line 116, in call_with_retry
+    return do()
+           ^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\connection.py", line 856, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\connection.py", line 1306, in _connect
+    raise err
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\connection.py", line 1290, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\rest_framework\views.py", line 416, in initial
+    self.check_throttles(request)
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\rest_framework\views.py", line 359, in check_throttles
+    if not throttle.allow_request(request, self):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\rest_framework\throttling.py", line 123, in allow_request
+    self.history = self.cache.get(self.key, [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\django\core\cache\backends\redis.py", line 187, in get
+    return self._cache.get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\django\core\cache\backends\redis.py", line 99, in get
+    value = client.get(key)
+            ^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\commands\core.py", line 1923, in get
+    return self.execute_command("GET", name, keys=[name])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\client.py", line 657, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\client.py", line 663, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\utils.py", line 196, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\connection.py", line 2603, in get_connection
+    connection.connect()
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\connection.py", line 846, in connect
+    self.connect_check_health(check_health=True)
+  File "C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\venv\Lib\site-packages\redis\connection.py", line 863, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+ERROR 2026-02-20 01:53:03,164 basehttp 5628 30044 "POST /api/auth/register/ HTTP/1.1" 500 174215
+INFO 2026-02-20 01:54:09,755 autoreload 16700 26488 Watching for file changes with StatReloader
+WARNING 2026-02-20 01:54:13,637 log 16700 5972 Bad Request: /api/auth/register/
+WARNING 2026-02-20 01:54:13,637 basehttp 16700 5972 "POST /api/auth/register/ HTTP/1.1" 400 115
+WARNING 2026-02-20 01:54:19,281 log 16700 5972 Bad Request: /api/auth/register/
+WARNING 2026-02-20 01:54:19,283 basehttp 16700 5972 "POST /api/auth/register/ HTTP/1.1" 400 115
+WARNING 2026-02-20 01:54:26,741 log 16700 5972 Bad Request: /api/auth/register/
+WARNING 2026-02-20 01:54:26,744 basehttp 16700 5972 "POST /api/auth/register/ HTTP/1.1" 400 76
+WARNING 2026-02-20 01:54:42,558 log 16700 5972 Too Many Requests: /api/auth/register/
+WARNING 2026-02-20 01:54:42,559 basehttp 16700 5972 "POST /api/auth/register/ HTTP/1.1" 429 109
+WARNING 2026-02-20 01:55:14,264 log 16700 5972 Too Many Requests: /api/auth/register/
+WARNING 2026-02-20 01:55:14,265 basehttp 16700 5972 "POST /api/auth/register/ HTTP/1.1" 429 109
+WARNING 2026-02-20 01:55:42,520 log 16700 5972 Bad Request: /api/auth/register/
+WARNING 2026-02-20 01:55:42,522 basehttp 16700 5972 "POST /api/auth/register/ HTTP/1.1" 400 38
+INFO 2026-02-20 01:56:27,766 basehttp 16700 5780 "GET /admin/accounts/user/08d8fcbe-b732-47bf-943d-9069514c2b3a/change/ HTTP/1.1" 200 70340
+INFO 2026-02-20 01:56:27,821 basehttp 16700 26540 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,824 basehttp 16700 22880 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,824 basehttp 16700 14608 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,825 basehttp 16700 27424 "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,828 basehttp 16700 26540 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,834 basehttp 16700 14608 "GET /static/admin/js/calendar.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,837 basehttp 16700 22880 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,841 basehttp 16700 27424 "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,849 basehttp 16700 26540 "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,849 basehttp 16700 23656 "GET /admin/jsi18n/ HTTP/1.1" 200 3343
+INFO 2026-02-20 01:56:27,850 basehttp 16700 14608 "GET /static/admin/js/core.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,854 basehttp 16700 26540 "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,853 basehttp 16700 27424 "GET /static/admin/js/SelectBox.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,851 basehttp 16700 22880 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,859 basehttp 16700 23656 "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,859 basehttp 16700 14608 "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,861 basehttp 16700 27424 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,867 basehttp 16700 22880 "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,870 basehttp 16700 23656 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,870 basehttp 16700 11680 "GET /static/admin/js/calendar.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,881 basehttp 16700 11680 "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,887 basehttp 16700 11680 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,932 basehttp 16700 5780 "GET /static/admin/js/inlines.js HTTP/1.1" 200 15526
+INFO 2026-02-20 01:56:27,981 basehttp 16700 5780 "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:27,985 basehttp 16700 23656 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,033 basehttp 16700 23656 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,036 basehttp 16700 23656 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,047 basehttp 16700 23656 "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,221 basehttp 16700 23656 "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,221 basehttp 16700 27424 "GET /static/admin/img/selector-icons.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,221 basehttp 16700 22880 "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,221 basehttp 16700 5780 "GET /static/admin/img/icon-clock.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,320 basehttp 16700 11680 "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,322 basehttp 16700 7148 "GET /static/admin/js/core.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,329 basehttp 16700 29652 "GET /admin/jsi18n/ HTTP/1.1" 200 3343
+INFO 2026-02-20 01:56:28,369 basehttp 16700 29652 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,369 basehttp 16700 7148 "GET /static/admin/js/SelectBox.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,371 basehttp 16700 11680 "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,372 basehttp 16700 30564 "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,377 basehttp 16700 29952 "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,377 basehttp 16700 17028 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:28,505 basehttp 16700 17028 "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:29,513 basehttp 16700 11680 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:29,514 basehttp 16700 30564 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:29,514 basehttp 16700 29952 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:29,515 basehttp 16700 7148 "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:56:29,515 basehttp 16700 17028 "GET /static/admin/js/inlines.js HTTP/1.1" 200 15526
+INFO 2026-02-20 01:56:56,056 basehttp 16700 5972 "OPTIONS /api/password/forgot/ HTTP/1.1" 200 0
+INFO 2026-02-20 01:56:56,190 celery_tasks 16700 5972 Password Reset OTP for awaisamjad.official@gmail.com: 316978
+INFO 2026-02-20 01:57:00,770 celery_tasks 16700 5972 Password reset OTP sent to awaisamjad.official@gmail.com
+INFO 2026-02-20 01:57:00,783 trace 16700 5972 Task Real_MFA.celery_tasks.send_password_reset_otp[6275c5b8-8e3e-451d-9ed3-6b113a3ea27c] succeeded in 4.5939999999827705s: {'status': 'success', 'user_id': '4a84f759-5f63-46a8-af2d-c8eb0cda38b8'}
+INFO 2026-02-20 01:57:00,785 basehttp 16700 5972 "POST /api/password/forgot/ HTTP/1.1" 200 198
+INFO 2026-02-20 01:57:35,644 basehttp 16700 5972 "OPTIONS /api/password/reset/ HTTP/1.1" 200 0
+WARNING 2026-02-20 01:57:35,650 log 16700 5972 Bad Request: /api/password/reset/
+WARNING 2026-02-20 01:57:35,650 basehttp 16700 5972 "POST /api/password/reset/ HTTP/1.1" 400 84
+WARNING 2026-02-20 01:57:40,398 log 16700 5972 Bad Request: /api/password/reset/
+WARNING 2026-02-20 01:57:40,400 basehttp 16700 5972 "POST /api/password/reset/ HTTP/1.1" 400 84
+WARNING 2026-02-20 01:57:41,000 log 16700 5972 Bad Request: /api/password/reset/
+WARNING 2026-02-20 01:57:41,000 basehttp 16700 5972 "POST /api/password/reset/ HTTP/1.1" 400 84
+INFO 2026-02-20 01:57:47,349 basehttp 16700 5780 "GET /admin/accounts/user/ HTTP/1.1" 200 53367
+INFO 2026-02-20 01:57:47,410 basehttp 16700 5780 "GET /static/admin/css/changelists.css HTTP/1.1" 304 0
+INFO 2026-02-20 01:57:47,420 basehttp 16700 22880 "GET /admin/jsi18n/ HTTP/1.1" 200 3343
+INFO 2026-02-20 01:57:47,420 basehttp 16700 5780 "GET /static/admin/img/icon-no.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:57:47,442 basehttp 16700 22880 "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:57:47,493 basehttp 16700 22880 "GET /static/admin/js/filters.js HTTP/1.1" 304 0
+INFO 2026-02-20 01:57:47,516 basehttp 16700 5780 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:57:47,517 basehttp 16700 22880 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 304 0
+INFO 2026-02-20 01:57:51,075 basehttp 16700 22880 "GET /admin/accounts/user/?q=awaisamjad HTTP/1.1" 200 32245
+INFO 2026-02-20 01:57:51,131 basehttp 16700 22880 "GET /admin/jsi18n/ HTTP/1.1" 200 3343
+INFO 2026-02-20 01:57:57,557 basehttp 16700 22880 "GET /admin/accounts/user/4a84f759-5f63-46a8-af2d-c8eb0cda38b8/change/?_changelist_filters=q%3Dawaisamjad HTTP/1.1" 200 70550
+INFO 2026-02-20 01:57:57,614 basehttp 16700 22880 "GET /admin/jsi18n/ HTTP/1.1" 200 3343
+INFO 2026-02-20 02:01:55,266 celery_tasks 16700 5972 Password Reset OTP for awaisamjad.official@gmail.com: 261891
+INFO 2026-02-20 02:01:55,277 celery_tasks 16700 5972 Password reset OTP sent to awaisamjad.official@gmail.com
+INFO 2026-02-20 02:01:55,278 trace 16700 5972 Task Real_MFA.celery_tasks.send_password_reset_otp[72cdda1b-be05-499f-a4fa-d2a01bb4d072] succeeded in 0.01600000000325963s: {'status': 'success', 'user_id': '4a84f759-5f63-46a8-af2d-c8eb0cda38b8'}
+INFO 2026-02-20 02:01:55,279 basehttp 16700 5972 "POST /api/password/forgot/ HTTP/1.1" 200 198
+WARNING 2026-02-20 02:02:26,556 log 16700 5972 Bad Request: /api/password/reset/
+WARNING 2026-02-20 02:02:26,559 basehttp 16700 5972 "POST /api/password/reset/ HTTP/1.1" 400 45
+INFO 2026-02-20 02:06:20,017 celery_tasks 16700 5972 Password Reset OTP for awaisamjad.official@gmail.com: 424398
+INFO 2026-02-20 02:06:20,028 celery_tasks 16700 5972 Password reset OTP sent to awaisamjad.official@gmail.com
+INFO 2026-02-20 02:06:20,029 trace 16700 5972 Task Real_MFA.celery_tasks.send_password_reset_otp[2523b004-e704-4407-ba4b-026b150abc01] succeeded in 0.01600000000325963s: {'status': 'success', 'user_id': '4a84f759-5f63-46a8-af2d-c8eb0cda38b8'}
+INFO 2026-02-20 02:06:20,031 basehttp 16700 5972 "POST /api/password/forgot/ HTTP/1.1" 200 198
+WARNING 2026-02-20 02:06:49,417 log 16700 5972 Bad Request: /api/password/reset/
+WARNING 2026-02-20 02:06:49,417 basehttp 16700 5972 "POST /api/password/reset/ HTTP/1.1" 400 56
+WARNING 2026-02-20 02:07:02,868 log 16700 5972 Bad Request: /api/password/reset/
+WARNING 2026-02-20 02:07:02,868 basehttp 16700 5972 "POST /api/password/reset/ HTTP/1.1" 400 78
+ERROR 2026-02-20 02:07:12,647 signals 16700 5972 Failed to send password change notification: UNIQUE constraint failed: email_notifications.provider_message_id
+INFO 2026-02-20 02:07:12,672 basehttp 16700 5972 "POST /api/password/reset/ HTTP/1.1" 200 119
+INFO 2026-02-20 02:07:18,040 basehttp 16700 5972 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+WARNING 2026-02-20 02:07:18,048 log 16700 5972 Too Many Requests: /api/auth/login/
+WARNING 2026-02-20 02:07:18,050 basehttp 16700 5972 "POST /api/auth/login/ HTTP/1.1" 429 93
+INFO 2026-02-20 02:08:01,725 basehttp 16700 24824 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+WARNING 2026-02-20 02:08:01,737 log 16700 24824 Bad Request: /api/auth/login/
+WARNING 2026-02-20 02:08:01,737 basehttp 16700 24824 "POST /api/auth/login/ HTTP/1.1" 400 95
+INFO 2026-02-20 02:08:34,075 basehttp 16700 32224 "POST /admin/accounts/user/4a84f759-5f63-46a8-af2d-c8eb0cda38b8/change/?_changelist_filters=q%3Dawaisamjad HTTP/1.1" 302 0
+INFO 2026-02-20 02:08:34,126 basehttp 16700 32224 "GET /admin/accounts/user/?q=awaisamjad HTTP/1.1" 200 32508
+INFO 2026-02-20 02:08:34,197 basehttp 16700 32224 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,200 basehttp 16700 17140 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,208 basehttp 16700 28848 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,209 basehttp 16700 21524 "GET /static/admin/css/changelists.css HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,209 basehttp 16700 32224 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,210 basehttp 16700 24164 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,212 basehttp 16700 17140 "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,215 basehttp 16700 28848 "GET /static/admin/js/core.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,220 basehttp 16700 21524 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,226 basehttp 16700 24164 "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,229 basehttp 16700 32224 "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,231 basehttp 16700 17140 "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,231 basehttp 16700 28848 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,236 basehttp 16700 21524 "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,237 basehttp 16700 3276 "GET /admin/jsi18n/ HTTP/1.1" 200 3343
+INFO 2026-02-20 02:08:34,240 basehttp 16700 24164 "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,365 basehttp 16700 24164 "GET /static/admin/img/icon-no.svg HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,417 basehttp 16700 3276 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,418 basehttp 16700 24164 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,431 basehttp 16700 24164 "GET /static/admin/js/filters.js HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,449 basehttp 16700 24164 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,449 basehttp 16700 3276 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:34,453 basehttp 16700 3276 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 304 0
+INFO 2026-02-20 02:08:37,526 celery_tasks 16700 24824 Device Verification OTP for awaisamjad.official@gmail.com: 251466
+INFO 2026-02-20 02:08:37,538 celery_tasks 16700 24824 Device verification OTP sent to awaisamjad.official@gmail.com
+INFO 2026-02-20 02:08:37,545 trace 16700 24824 Task Real_MFA.celery_tasks.send_device_verification_otp[3ff37492-335c-48ba-a034-91d5150f6d76] succeeded in 0.015000000013969839s: {'status': 'success', 'user_id': '4a84f759-5f63-46a8-af2d-c8eb0cda38b8'}
+INFO 2026-02-20 02:08:37,556 basehttp 16700 24824 "POST /api/auth/login/ HTTP/1.1" 202 308
+INFO 2026-02-20 02:08:57,570 basehttp 16700 24824 "OPTIONS /api/devices/verify/ HTTP/1.1" 200 0
+ERROR 2026-02-20 02:08:58,053 signals 16700 24824 Failed to send new device notification: UNIQUE constraint failed: email_notifications.provider_message_id
+ERROR 2026-02-20 02:08:58,074 signals 16700 24824 Failed to send device verified notification: UNIQUE constraint failed: email_notifications.provider_message_id
+INFO 2026-02-20 02:08:58,161 basehttp 16700 24824 "POST /api/devices/verify/ HTTP/1.1" 200 903
+INFO 2026-02-20 02:09:15,917 basehttp 16700 24824 "OPTIONS /api/profile/me/ HTTP/1.1" 200 0
+INFO 2026-02-20 02:09:15,990 basehttp 16700 24824 "PUT /api/profile/me/ HTTP/1.1" 200 747
+INFO 2026-02-20 02:09:17,682 basehttp 16700 24824 "GET /api/profile/me/ HTTP/1.1" 200 694
+INFO 2026-02-20 02:09:23,920 basehttp 16700 24824 "OPTIONS /api/totp/status/ HTTP/1.1" 200 0
+INFO 2026-02-20 02:09:23,948 basehttp 16700 24824 "GET /api/totp/status/ HTTP/1.1" 200 107
+INFO 2026-02-20 02:09:32,318 basehttp 16700 24824 "OPTIONS /api/totp/setup/ HTTP/1.1" 200 0
+INFO 2026-02-20 02:09:32,360 basehttp 16700 24824 "POST /api/totp/setup/ HTTP/1.1" 200 261
+INFO 2026-02-20 02:09:38,205 basehttp 16700 24824 "OPTIONS /api/devices/ HTTP/1.1" 200 0
+INFO 2026-02-20 02:09:38,272 basehttp 16700 24824 "GET /api/devices/ HTTP/1.1" 200 1755
+INFO 2026-02-20 02:10:02,241 basehttp 16700 24824 "OPTIONS /api/devices/sessions/ HTTP/1.1" 200 0
+INFO 2026-02-20 02:10:02,270 basehttp 16700 24824 "GET /api/devices/sessions/ HTTP/1.1" 200 538
+INFO 2026-02-20 02:10:04,324 basehttp 16700 24824 "GET /api/devices/ HTTP/1.1" 200 1755
+INFO 2026-02-20 02:10:10,834 basehttp 16700 24824 "GET /api/totp/status/ HTTP/1.1" 200 150

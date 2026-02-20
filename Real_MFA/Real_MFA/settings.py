@@ -33,11 +33,22 @@ LOGS_DIR.mkdir(exist_ok=True)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
+# Environment detection
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'development').lower()
+IS_PRODUCTION = ENVIRONMENT == 'production'
+IS_DEVELOPMENT = not IS_PRODUCTION
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-grc5)tkgnzh-&b2_fwrz(-xkp(mzz%)fbx5(@#$=_xfhu1)hiy')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if IS_PRODUCTION:
+        raise ValueError("SECRET_KEY environment variable must be set in production!")
+    SECRET_KEY = 'django-insecure-grc5)tkgnzh-&b2_fwrz(-xkp(mzz%)fbx5(@#$=_xfhu1)hiy'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'True' if IS_DEVELOPMENT else 'False') == 'True'
+if DEBUG and IS_PRODUCTION:
+    DEBUG = False  # Force DEBUG=False in production
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -54,6 +65,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'django_celery_beat',
+    'django_celery_results',
     # Custom apps
     'accounts',
     'devices',
@@ -99,10 +112,20 @@ WSGI_APPLICATION = 'Real_MFA.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('DB_NAME', BASE_DIR / 'db.sqlite3'),
+        'USER': os.getenv('DB_USER', ''),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', ''),
+        'ATOMIC_REQUESTS': True,
+        'CONN_MAX_AGE': 600 if IS_PRODUCTION else 0,
     }
 }
+
+# Validate PostgreSQL in production
+if IS_PRODUCTION and DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    raise ValueError("SQLite is NOT allowed in production. Use PostgreSQL instead.")
 
 
 # Password validation
@@ -139,7 +162,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.getenv('STATIC_ROOT', BASE_DIR / 'staticfiles')
+
+# Media files (User uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', BASE_DIR / 'media')
+
+# Ensure directories exist
+os.makedirs(STATIC_ROOT, exist_ok=True)
+os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -204,7 +239,24 @@ REST_FRAMEWORK = {
 # ============================================================================
 # CORS CONFIGURATION
 # ============================================================================
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080,https://real-mfa.vercel.app').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173'
+).split(',')
+
+# In production, only allow specific origins
+if IS_PRODUCTION:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^https:\/\/.*\.yourdomain\.com$",  # Update with your domain
+    ]
+else:
+    CORS_ALLOW_ALL_ORIGINS = DEBUG
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^http://localhost:\d+$",
+        r"^http://127\.0\.0\.1:\d+$",
+    ]
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -228,13 +280,6 @@ CORS_ALLOW_HEADERS = [
 CORS_EXPOSE_HEADERS = [
     'content-type',
     'x-csrftoken',
-]
-
-# For development only - allows all origins when DEBUG=True
-CORS_ALLOW_ALL_ORIGINS = DEBUG
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^http://localhost:\d+$",
-    r"^http://127\.0\.0\.1:\d+$",
 ]
 
 # ============================================================================
@@ -357,14 +402,29 @@ LOGGING = {
 # ============================================================================
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-SECURE_HSTS_SECONDS = 0  # Set to 31536000 in production
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
-SECURE_SSL_REDIRECT = False  # Set to True in production
-SESSION_COOKIE_SECURE = False  # Set to True in production
-CSRF_COOKIE_SECURE = False  # Set to True in production
+X_FRAME_OPTIONS = 'DENY' if IS_PRODUCTION else 'SAMEORIGIN'
+
+# HSTS (HTTP Strict Transport Security) - only enable in production
+SECURE_HSTS_SECONDS = 31536000 if IS_PRODUCTION else 0  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = IS_PRODUCTION
+SECURE_HSTS_PRELOAD = IS_PRODUCTION
+
+# SSL/HTTPS - enforce in production
+SECURE_SSL_REDIRECT = IS_PRODUCTION
+SESSION_COOKIE_SECURE = IS_PRODUCTION
+CSRF_COOKIE_SECURE = IS_PRODUCTION
+
+# Additional security headers
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+# CSRF configuration
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+
+# Security middleware should be first
+MIDDLEWARE.insert(0, 'django.middleware.security.SecurityMiddleware')
+
+# Additional headers for security
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if IS_PRODUCTION else None

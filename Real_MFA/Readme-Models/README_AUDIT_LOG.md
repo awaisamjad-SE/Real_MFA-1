@@ -1,6 +1,6 @@
 # AUDIT_LOG APP - Complete Documentation
 
-## 📋 Table of Contents
+## ðŸ“‹ Table of Contents
 1. [Overview](#overview)
 2. [Models](#models)
 3. [Audit Event Types](#audit-event-types)
@@ -30,8 +30,8 @@ The **AUDIT_LOG** app provides comprehensive security audit trails:
 - Automatic cleanup of old logs
 
 **Scale:**
-- 1M users × 100 sessions = 100M session events/month
-- 1M users × 10 devices = 10M device events/month
+- 1M users Ã— 100 sessions = 100M session events/month
+- 1M users Ã— 10 devices = 10M device events/month
 - Total: 300M+ audit records/year
 - Storage: 50-100GB/year with compression
 
@@ -214,7 +214,7 @@ latitude (Float)               # Exact location
 longitude (Float)              # Exact location
 
 # Device Status Change
-trust_state_change (String)    # None → Trusted, Verified → Trusted
+trust_state_change (String)    # None â†’ Trusted, Verified â†’ Trusted
 verified_at (DateTime)         # Device verification time
 trusted_at (DateTime)          # Device trust time
 compromised_at (DateTime)      # When marked compromised?
@@ -610,7 +610,7 @@ def calculate_risk_score(user, device, session, action):
     Calculate risk score (0-100) based on multiple factors
     """
     risk = 0
-    
+
     # Location-based risks
     previous_location = get_last_location(user, device)
     if is_impossible_travel(previous_location, current_location):
@@ -619,7 +619,7 @@ def calculate_risk_score(user, device, session, action):
         risk += 20  # Different country
     elif is_different_city(previous_location, current_location):
         risk += 10  # Different city
-    
+
     # Device risks
     if device.is_compromised:
         risk += 35  # Already marked compromised
@@ -627,19 +627,19 @@ def calculate_risk_score(user, device, session, action):
         risk += 15  # Very new device
     if device.not_verified(for_days=30):
         risk += 10  # Unverified for 30 days
-    
+
     # Account history
     failed_logins = get_failed_logins_last_hour(user)
     if failed_logins > 5:
         risk += 25  # Many failed attempts
-    
+
     if user.account_locked:
         risk += 30  # Account is locked
-    
+
     # Time-based risks
     if is_unusual_time_for_user(user, current_time):
         risk += 10  # User normally sleeps now
-    
+
     # Return capped at 100
     return min(risk, 100)
 ```
@@ -647,10 +647,10 @@ def calculate_risk_score(user, device, session, action):
 ### Risk Level Thresholds:
 
 ```
-Score 0-25:    LOW (✅ Normal activity)
-Score 26-50:   MEDIUM (⚠️ Unusual but acceptable)
-Score 51-75:   HIGH (⛔ Suspicious, needs review)
-Score 76-100:  CRITICAL (🚨 Security incident)
+Score 0-25:    LOW (âœ… Normal activity)
+Score 26-50:   MEDIUM (âš ï¸ Unusual but acceptable)
+Score 51-75:   HIGH (â›” Suspicious, needs review)
+Score 76-100:  CRITICAL (ðŸš¨ Security incident)
 ```
 
 ### Action Based on Risk Level:
@@ -693,22 +693,22 @@ def is_impossible_travel(location_1, location_2, time_diff_minutes):
         location_2['latitude'],
         location_2['longitude']
     )
-    
+
     # Max flight speed: 900 km/h
     max_travel_km = (time_diff_minutes / 60) * 900
-    
+
     return distance_km > max_travel_km  # True = Impossible
 ```
 
 ### Example:
 ```
-Location 1: New York (40.7128°N, 74.0060°W)
-Location 2: Tokyo (35.6762°N, 139.6503°E)
+Location 1: New York (40.7128Â°N, 74.0060Â°W)
+Location 2: Tokyo (35.6762Â°N, 139.6503Â°E)
 Distance: ~10,850 km
 Time gap: 30 minutes
 
 Max possible distance in 30 min: (30/60) * 900 = 450 km
-10,850 km > 450 km → IMPOSSIBLE TRAVEL ✗
+10,850 km > 450 km â†’ IMPOSSIBLE TRAVEL âœ—
 ```
 
 ### Velocity-Based Detection:
@@ -720,17 +720,17 @@ def get_velocity_anomalies(user):
     """
     sessions = Session.objects.filter(user=user).order_by('created_at')
     anomalies = []
-    
+
     for i in range(len(sessions) - 1):
         s1 = sessions[i]
         s2 = sessions[i + 1]
-        
+
         distance = haversine_distance(s1.latitude, s1.longitude,
                                       s2.latitude, s2.longitude)
         time_gap = (s2.created_at - s1.created_at).total_seconds() / 3600  # hours
-        
+
         velocity = distance / time_gap  # km/hour
-        
+
         # Commercial flight max: 900 km/h
         if velocity > 900:
             anomalies.append({
@@ -739,7 +739,7 @@ def get_velocity_anomalies(user):
                 'velocity': velocity,
                 'reason': 'Faster than possible travel'
             })
-    
+
     return anomalies
 ```
 
@@ -751,74 +751,74 @@ def get_velocity_anomalies(user):
 
 ```
 audit_log_sessions
-├── id (UUID, PK)
-├── user_id (UUID, FK → users)
-├── session_id (UUID, FK → sessions)
-├── device_id (UUID, FK → devices)
-├── action (VARCHAR)
-├── risk_level (VARCHAR)
-├── is_anomalous (BOOLEAN)
-├── requires_review (BOOLEAN)
-├── created_at (TIMESTAMP)
-└── Indexes:
-    ├── user_id + created_at
-    ├── session_id
-    ├── risk_level + created_at
-    └── requires_review + created_at
+â”œâ”€â”€ id (UUID, PK)
+â”œâ”€â”€ user_id (UUID, FK â†’ users)
+â”œâ”€â”€ session_id (UUID, FK â†’ sessions)
+â”œâ”€â”€ device_id (UUID, FK â†’ devices)
+â”œâ”€â”€ action (VARCHAR)
+â”œâ”€â”€ risk_level (VARCHAR)
+â”œâ”€â”€ is_anomalous (BOOLEAN)
+â”œâ”€â”€ requires_review (BOOLEAN)
+â”œâ”€â”€ created_at (TIMESTAMP)
+â””â”€â”€ Indexes:
+    â”œâ”€â”€ user_id + created_at
+    â”œâ”€â”€ session_id
+    â”œâ”€â”€ risk_level + created_at
+    â””â”€â”€ requires_review + created_at
 
 audit_log_devices
-├── id (UUID, PK)
-├── user_id (UUID, FK → users)
-├── device_id (UUID, FK → devices)
-├── action (VARCHAR)
-├── risk_score (INT)
-├── is_anomalous (BOOLEAN)
-├── created_at (TIMESTAMP)
-└── Indexes:
-    ├── user_id + created_at
-    ├── device_id
-    ├── risk_score DESC
-    └── is_anomalous + created_at
+â”œâ”€â”€ id (UUID, PK)
+â”œâ”€â”€ user_id (UUID, FK â†’ users)
+â”œâ”€â”€ device_id (UUID, FK â†’ devices)
+â”œâ”€â”€ action (VARCHAR)
+â”œâ”€â”€ risk_score (INT)
+â”œâ”€â”€ is_anomalous (BOOLEAN)
+â”œâ”€â”€ created_at (TIMESTAMP)
+â””â”€â”€ Indexes:
+    â”œâ”€â”€ user_id + created_at
+    â”œâ”€â”€ device_id
+    â”œâ”€â”€ risk_score DESC
+    â””â”€â”€ is_anomalous + created_at
 
 audit_log_mfa
-├── id (UUID, PK)
-├── user_id (UUID, FK → users)
-├── device_id (UUID, FK → devices)
-├── action (VARCHAR)
-├── mfa_method (VARCHAR)
-├── challenge_id (UUID)
-├── verification_attempts (INT)
-├── created_at (TIMESTAMP)
-└── Indexes:
-    ├── user_id + created_at
-    ├── challenge_id
-    ├── mfa_method + created_at
-    └── verification_attempts
+â”œâ”€â”€ id (UUID, PK)
+â”œâ”€â”€ user_id (UUID, FK â†’ users)
+â”œâ”€â”€ device_id (UUID, FK â†’ devices)
+â”œâ”€â”€ action (VARCHAR)
+â”œâ”€â”€ mfa_method (VARCHAR)
+â”œâ”€â”€ challenge_id (UUID)
+â”œâ”€â”€ verification_attempts (INT)
+â”œâ”€â”€ created_at (TIMESTAMP)
+â””â”€â”€ Indexes:
+    â”œâ”€â”€ user_id + created_at
+    â”œâ”€â”€ challenge_id
+    â”œâ”€â”€ mfa_method + created_at
+    â””â”€â”€ verification_attempts
 
 audit_log_summaries
-├── id (UUID, PK)
-├── user_id (UUID, FK → users)
-├── date (DATE)
-├── total_sessions (INT)
-├── total_devices (INT)
-├── high_risk_events (INT)
-├── critical_risk_events (INT)
-└── Indexes:
-    ├── user_id + date (UNIQUE)
-    ├── date
-    └── high_risk_events DESC
+â”œâ”€â”€ id (UUID, PK)
+â”œâ”€â”€ user_id (UUID, FK â†’ users)
+â”œâ”€â”€ date (DATE)
+â”œâ”€â”€ total_sessions (INT)
+â”œâ”€â”€ total_devices (INT)
+â”œâ”€â”€ high_risk_events (INT)
+â”œâ”€â”€ critical_risk_events (INT)
+â””â”€â”€ Indexes:
+    â”œâ”€â”€ user_id + date (UNIQUE)
+    â”œâ”€â”€ date
+    â””â”€â”€ high_risk_events DESC
 ```
 
 ### Storage Estimates:
 
 ```
-1M users × 100 sessions/user/month = 100M session events
-1M users × 10 devices/user/month = 10M device events
-1M users × 20 MFA events/user/month = 20M MFA events
+1M users Ã— 100 sessions/user/month = 100M session events
+1M users Ã— 10 devices/user/month = 10M device events
+1M users Ã— 20 MFA events/user/month = 20M MFA events
 Total: ~130M events/month = 1.56B/year
 
 Per event: ~500 bytes (including JSON fields)
-Storage: 1.56B × 500 bytes = 780 GB/year
+Storage: 1.56B Ã— 500 bytes = 780 GB/year
 
 With compression (40%): 312 GB/year
 With archival after 1 year: 312 GB active + archive
@@ -836,15 +836,15 @@ def cleanup_audit_logs():
     Run daily to maintain database size
     """
     cutoff_date = timezone.now() - timedelta(days=365)
-    
+
     # Archive to S3
     old_logs = SessionAuditLog.objects.filter(
         created_at__lt=cutoff_date
     )
-    
+
     for log in old_logs:
         export_to_s3(log)
-    
+
     # Delete after 7 years
     delete_date = timezone.now() - timedelta(days=365*7)
     SessionAuditLog.objects.filter(
@@ -858,7 +858,7 @@ def cleanup_audit_logs():
 
 ### 1. **Always Log Security Events**
 ```python
-# ✅ GOOD: Log every sensitive action
+# âœ… GOOD: Log every sensitive action
 SessionAuditLog.objects.create(
     user=user,
     session=session,
@@ -877,7 +877,7 @@ MFAAuditLog.objects.create(
 
 ### 2. **Calculate Risk Scores**
 ```python
-# ✅ GOOD: Assess risk for every event
+# âœ… GOOD: Assess risk for every event
 risk_score = calculate_risk_score(
     user=user,
     device=device,
@@ -891,7 +891,7 @@ if risk_score > 75:
 
 ### 3. **Detect Anomalies**
 ```python
-# ✅ GOOD: Find unusual patterns
+# âœ… GOOD: Find unusual patterns
 anomalies = detect_anomalies(
     user=user,
     current_event=login_event
@@ -908,14 +908,14 @@ if anomalies:
 
 ### 4. **Clean Up Old Logs**
 ```python
-# ✅ GOOD: Archive and delete after retention
+# âœ… GOOD: Archive and delete after retention
 # Run daily via Celery task
 cleanup_audit_logs()
 ```
 
 ### 5. **Query Efficiently**
 ```python
-# ✅ GOOD: Use indexes
+# âœ… GOOD: Use indexes
 from django.db.models import Q
 
 # Find high-risk events for user in past 30 days
@@ -945,11 +945,11 @@ def find_impossible_travel(user):
     sessions = Session.objects.filter(
         user=user
     ).order_by('created_at')
-    
+
     impossible = []
     for i in range(len(sessions) - 1):
         s1, s2 = sessions[i], sessions[i+1]
-        
+
         if is_impossible_travel(
             (s1.latitude, s1.longitude),
             (s2.latitude, s2.longitude),
@@ -960,7 +960,7 @@ def find_impossible_travel(user):
                 'session_2': s2.id,
                 'time_gap': s2.created_at - s1.created_at
             })
-    
+
     return impossible
 ```
 
@@ -977,27 +977,27 @@ def find_compromise_indicators(user):
         'mfa_disabled': False,
         'risk_score': 0
     }
-    
+
     # Recent failed logins
     indicators['failed_logins'] = SessionAuditLog.objects.filter(
         user=user,
         action='login_failed',
         created_at__gte=timezone.now() - timedelta(hours=24)
     ).count()
-    
+
     # New devices in past 24 hours
     indicators['new_devices'] = DeviceAuditLog.objects.filter(
         user=user,
         action='device_registered',
         created_at__gte=timezone.now() - timedelta(hours=24)
     ).count()
-    
+
     # High risk events
     indicators['risk_score'] = DeviceAuditLog.objects.filter(
         user=user,
         created_at__gte=timezone.now() - timedelta(hours=24)
     ).aggregate(Max('risk_score'))['risk_score__max'] or 0
-    
+
     # Check if MFA was disabled
     mfa_disabled = MFAAuditLog.objects.filter(
         user=user,
@@ -1005,7 +1005,7 @@ def find_compromise_indicators(user):
         created_at__gte=timezone.now() - timedelta(hours=24)
     ).exists()
     indicators['mfa_disabled'] = mfa_disabled
-    
+
     return indicators
 ```
 
@@ -1019,14 +1019,14 @@ def generate_daily_summary(user, date):
         user=user,
         date=date
     )
-    
+
     # Count events
     summary.total_sessions = SessionAuditLog.objects.filter(
         user=user,
         action='session_created',
         created_at__date=date
     ).count()
-    
+
     summary.high_risk_events = (
         SessionAuditLog.objects.filter(
             user=user,
@@ -1039,7 +1039,7 @@ def generate_daily_summary(user, date):
             created_at__date=date
         ).count()
     )
-    
+
     summary.save()
     return summary
 ```
@@ -1065,11 +1065,11 @@ def ml_detect_anomalies(user):
         session.duration,
         session.api_calls
     ]
-    
+
     # Train isolation forest
     model = IsolationForest()
     outliers = model.fit_predict(features)
-    
+
     # Mark anomalous sessions
     for i, is_anomalous in enumerate(outliers):
         if is_anomalous == -1:
@@ -1090,10 +1090,10 @@ class AlertManager:
         if risk_level in ['high', 'critical']:
             # Send push notification
             send_push_notification(user, f"Suspicious activity: {reason}")
-            
+
             # Send email
             send_email(user, f"Login alert: {reason}")
-            
+
             # Alert admin
             alert_security_team(user)
 ```
@@ -1106,7 +1106,7 @@ def check_threat_intelligence(ip_address):
     """
     # Query AbuseIPDB, Shodan, etc
     is_suspicious = query_threat_db(ip_address)
-    
+
     if is_suspicious:
         return {
             'ip_reputation': 'bad',
@@ -1127,13 +1127,13 @@ class AutomatedResponse:
             Session.objects.filter(user=audit_log.user).update(
                 status='revoked'
             )
-            
+
             # Require MFA
             require_mfa(audit_log.user)
-            
+
             # Force password change
             require_password_change(audit_log.user)
-            
+
             # Email user
             send_security_alert(audit_log.user)
 ```
@@ -1150,19 +1150,19 @@ def generate_compliance_report(user, days=90):
             action='session_authenticated',
             created_at__gte=timezone.now() - timedelta(days=days)
         ).count(),
-        
+
         'mfa_verification_rate': calculate_mfa_rate(user, days),
         'critical_events': SessionAuditLog.objects.filter(
             user=user,
             risk_level='critical',
             created_at__gte=timezone.now() - timedelta(days=days)
         ).count(),
-        
+
         'avg_response_time': calculate_avg_incident_response(user, days),
-        
+
         'failed_audit_requirements': find_failed_requirements(user, days)
     }
-    
+
     return report
 ```
 
@@ -1172,34 +1172,34 @@ def generate_compliance_report(user, days=90):
 
 The **AUDIT_LOG** app provides:
 
-✅ **Comprehensive Tracking**
+âœ… **Comprehensive Tracking**
 - Session events (19+ types)
 - Device events (20+ types)
 - MFA events (18+ types)
 - Relationship changes
 
-✅ **Risk Assessment**
+âœ… **Risk Assessment**
 - Risk scoring (0-100)
 - Risk level categorization
 - Automatic risk calculation
 
-✅ **Anomaly Detection**
+âœ… **Anomaly Detection**
 - Impossible travel detection
 - Velocity-based anomalies
 - Pattern recognition
 
-✅ **Compliance**
+âœ… **Compliance**
 - SOC2, HIPAA, PCI-DSS support
 - 7-year retention
 - Detailed audit trails
 
-✅ **Performance**
+âœ… **Performance**
 - Daily aggregation
 - Index optimization
 - Archival strategy
 - 300M+ events/year support
 
-✅ **Security**
+âœ… **Security**
 - Risk-based blocking
 - Automated response
 - Alert integration
