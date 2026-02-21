@@ -17,8 +17,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 PROJECT_DIR="/home/realuser/real_mfa"
+APP_DIR="${PROJECT_DIR}/Real_MFA"
 VENV_DIR="${PROJECT_DIR}/venv"
-WORKING_DIR="${PROJECT_DIR}/Real_MFA"
 
 # Step 1: Pull latest code
 echo -e "\n${YELLOW}Step 1: Pulling latest code from repository...${NC}"
@@ -30,12 +30,12 @@ echo -e "${GREEN}✓ Code pulled successfully${NC}"
 echo -e "\n${YELLOW}Step 2: Installing Python dependencies...${NC}"
 source ${VENV_DIR}/bin/activate
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r ${APP_DIR}/requirements.txt
 echo -e "${GREEN}✓ Dependencies installed${NC}"
 
 # Step 3: Run migrations
 echo -e "\n${YELLOW}Step 3: Running database migrations...${NC}"
-cd ${WORKING_DIR}
+cd ${APP_DIR}
 python manage.py migrate
 echo -e "${GREEN}✓ Migrations completed${NC}"
 

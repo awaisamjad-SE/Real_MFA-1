@@ -14,7 +14,6 @@ EnvironmentFile=/home/realuser/real_mfa/Real_MFA/.env
 ExecStart=/home/realuser/real_mfa/venv/bin/celery -A Real_MFA beat \
     --loglevel=info \
     --logfile=/var/log/real_mfa_celery_beat.log \
-    --pidfile=/run/celery_beat.pid \
     --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
 # Process management

@@ -3,7 +3,7 @@ Description=Real_MFA Celery Background Task Worker
 After=network.target redis-server.service
 
 [Service]
-Type=forking
+Type=simple
 User=realuser
 Group=www-data
 WorkingDirectory=/home/realuser/real_mfa/Real_MFA
@@ -14,7 +14,6 @@ EnvironmentFile=/home/realuser/real_mfa/Real_MFA/.env
 ExecStart=/home/realuser/real_mfa/venv/bin/celery -A Real_MFA worker \
     --loglevel=info \
     --logfile=/var/log/real_mfa_celery_worker.log \
-    --pidfile=/run/celery_worker.pid \
     --concurrency=4
 
 # Process management
