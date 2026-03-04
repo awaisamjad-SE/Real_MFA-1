@@ -2,6 +2,7 @@
 # ENVIRONMENT VARIABLES - NEVER COMMIT SECRETS!
 # ==============================================================================
 .env
+.env.docker
 .env.local
 .env.*.local
 .env.production

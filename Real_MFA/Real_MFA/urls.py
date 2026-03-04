@@ -8,9 +8,44 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
+from django.db import connections
+from django.core.cache import cache
 from otp.urls import totp_urlpatterns
 
+
+def health_check(request):
+    checks = {
+        'database': 'ok',
+        'cache': 'ok',
+    }
+    status_code = 200
+
+    try:
+        with connections['default'].cursor() as cursor:
+            cursor.execute('SELECT 1')
+    except Exception:
+        checks['database'] = 'error'
+        status_code = 503
+
+    try:
+        cache.set('healthcheck', 'ok', timeout=10)
+        if cache.get('healthcheck') != 'ok':
+            raise RuntimeError('Cache validation failed')
+    except Exception:
+        checks['cache'] = 'error'
+        status_code = 503
+
+    return JsonResponse(
+        {
+            'status': 'ok' if status_code == 200 else 'degraded',
+            'checks': checks,
+        },
+        status=status_code,
+    )
+
 urlpatterns = [
+    path('healthz/', health_check),
     path('admin/', admin.site.urls),
     
     # Accounts: Login, Logout, Registration

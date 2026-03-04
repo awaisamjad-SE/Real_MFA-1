@@ -1,0 +1,63 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push release image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./Real_MFA
+          file: ./Real_MFA/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/real_mfa:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/real_mfa:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/real_mfa:${{ github.sha }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          envs: IMAGE
+          script: |
+            set -e
+            cd ${{ secrets.APP_PATH }}
+            git fetch --all
+            git reset --hard origin/main
+            echo "Deploying image: $IMAGE"
+            echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+            export IMAGE=$IMAGE
+            docker compose --env-file .env.docker -f docker-compose.ubuntu.yml pull web celery_worker celery_beat
+            docker compose --env-file .env.docker -f docker-compose.ubuntu.yml up -d --remove-orphans
+            docker image prune -f
+            docker compose --env-file .env.docker -f docker-compose.ubuntu.yml ps
+            curl -fsS http://127.0.0.1/healthz/ || (echo "Health check failed" && exit 1)

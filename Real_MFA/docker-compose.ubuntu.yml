@@ -1,37 +1,35 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: real_mfa_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME:-real_mfa_db}
-      POSTGRES_USER: ${DB_USER:-real_mfa_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-this-password}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   redis:
     image: redis:7-alpine
     container_name: real_mfa_redis
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
+    command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${IMAGE:-ghcr.io/your-org/real_mfa:${IMAGE_TAG:-latest}}
     container_name: real_mfa_web
     restart: unless-stopped
     env_file:
@@ -41,19 +39,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["/app/docker/entrypoint-web.sh"]
     volumes:
       - static_data:/app/staticfiles
       - media_data:/app/media
-      - app_logs:/app/logs
-    expose:
-      - "8000"
+      - logs_data:/app/logs
+    command: gunicorn Real_MFA.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 90 --access-logfile - --error-logfile -
 
-  celery:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: real_mfa_celery
+  celery_worker:
+    image: ${IMAGE:-ghcr.io/your-org/real_mfa:${IMAGE_TAG:-latest}}
+    container_name: real_mfa_celery_worker
     restart: unless-stopped
     env_file:
       - .env.docker
@@ -62,14 +56,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["celery", "-A", "Real_MFA", "worker", "--loglevel=info"]
+    command: celery -A Real_MFA worker --loglevel=info
     volumes:
-      - app_logs:/app/logs
+      - logs_data:/app/logs
 
   celery_beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${IMAGE:-ghcr.io/your-org/real_mfa:${IMAGE_TAG:-latest}}
     container_name: real_mfa_celery_beat
     restart: unless-stopped
     env_file:
@@ -79,9 +71,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["celery", "-A", "Real_MFA", "beat", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    command: celery -A Real_MFA beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
-      - app_logs:/app/logs
+      - logs_data:/app/logs
 
   nginx:
     image: nginx:1.27-alpine
@@ -101,4 +93,4 @@ volumes:
   redis_data:
   static_data:
   media_data:
-  app_logs:
+  logs_data:
