@@ -72,6 +72,9 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('role', 'admin')
+        # Admin login backend requires verified email.
+        extra_fields.setdefault('email_verified', True)
+        extra_fields.setdefault('email_verified_at', timezone.now())
 
         if extra_fields.get('role') != 'admin':
             raise ValueError("Superuser must have role='admin'.")
@@ -204,7 +207,7 @@ class Profile(TimeStampedModel):
     Extended user profile information
     Separated from User model for better data organization
     """
-    
+        
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     
     # Personal Information

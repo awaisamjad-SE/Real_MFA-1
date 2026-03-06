@@ -43,7 +43,7 @@ services:
       - static_data:/app/staticfiles
       - media_data:/app/media
       - logs_data:/app/logs
-    command: gunicorn Real_MFA.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 90 --access-logfile - --error-logfile -
+    command: gunicorn Real_MFA.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120 --access-logfile - --error-logfile -
 
   celery_worker:
     image: ${IMAGE:-ghcr.io/your-org/real_mfa:${IMAGE_TAG:-latest}}
@@ -56,7 +56,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: celery -A Real_MFA worker --loglevel=info
+    entrypoint: ["celery", "-A", "Real_MFA", "worker", "--loglevel=info"]
     volumes:
       - logs_data:/app/logs
 
@@ -71,7 +71,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: celery -A Real_MFA beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    entrypoint: ["celery", "-A", "Real_MFA", "beat", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
     volumes:
       - logs_data:/app/logs
 

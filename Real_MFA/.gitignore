@@ -6,8 +6,9 @@
 .env.local
 .env.*.local
 .env.production
-env.example
-
+.env.example
+.env.complete
+.env.docker.example
 # ==============================================================================
 # PYTHON & VIRTUAL ENVIRONMENT
 # ==============================================================================

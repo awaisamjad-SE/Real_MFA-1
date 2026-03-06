@@ -402,17 +402,17 @@ LOGGING = {
 # ============================================================================
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY' if IS_PRODUCTION else 'SAMEORIGIN'
+X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'DENY' if IS_PRODUCTION else 'SAMEORIGIN')
 
 # HSTS (HTTP Strict Transport Security) - only enable in production
-SECURE_HSTS_SECONDS = 31536000 if IS_PRODUCTION else 0  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = IS_PRODUCTION
-SECURE_HSTS_PRELOAD = IS_PRODUCTION
+SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000' if IS_PRODUCTION else '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'True' if IS_PRODUCTION else 'False') == 'True'
+SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD', 'True' if IS_PRODUCTION else 'False') == 'True'
 
 # SSL/HTTPS - enforce in production
-SECURE_SSL_REDIRECT = IS_PRODUCTION
-SESSION_COOKIE_SECURE = IS_PRODUCTION
-CSRF_COOKIE_SECURE = IS_PRODUCTION
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True' if IS_PRODUCTION else 'False') == 'True'
+SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True' if IS_PRODUCTION else 'False') == 'True'
+CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'True' if IS_PRODUCTION else 'False') == 'True'
 
 # Additional security headers
 SESSION_COOKIE_HTTPONLY = True
@@ -427,4 +427,7 @@ CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,
 MIDDLEWARE.insert(0, 'django.middleware.security.SecurityMiddleware')
 
 # Additional headers for security
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if IS_PRODUCTION else None
+if os.getenv('SECURE_PROXY_SSL_HEADER', 'True' if IS_PRODUCTION else 'False') == 'True':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    SECURE_PROXY_SSL_HEADER = None
