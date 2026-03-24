@@ -258,6 +258,29 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+
+---
+
+## 8.1 Real Project Notes (March 2026)
+
+This codebase has some important practical constraints that should be reflected in MVT implementation:
+
+1. Domain-based deployment:
+- Main domain: `awaisamjad.engineer`
+- Ensure host/origin environment variables match domain and scheme.
+
+2. Docker networking:
+- In Compose, app must use `db` and `redis` service names, not localhost.
+
+3. Startup safety:
+- Validate DB/Redis host and port env values at startup to fail fast on placeholders.
+
+4. Notification persistence safety:
+- JSONField metadata must be encoded safely.
+- Provider message ID must be unique even when provider does not return one.
+
+5. Auth behavior:
+- If login backend enforces `email_verified`, ensure admin bootstrap/superuser flow sets verified state.
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"

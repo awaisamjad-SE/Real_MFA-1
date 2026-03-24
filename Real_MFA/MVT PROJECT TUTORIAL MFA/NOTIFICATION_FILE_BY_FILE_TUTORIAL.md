@@ -50,3 +50,10 @@ Expose filters:
 2. add template rendering fallback
 3. add unique provider id generation
 4. add test for duplicate protection
+
+## 8) Production hardening checklist
+1. Add helper to normalize metadata into JSON-safe dict before `EmailNotification.objects.create(...)`.
+2. Guarantee fallback `provider_message_id` generation when backend result is empty.
+3. Add test: metadata with datetime should save successfully.
+4. Add test: two rapid sends never reuse same provider message id.
+5. Add test: notification failure path does not return HTTP 500 for registration flow.

@@ -50,3 +50,15 @@ The `accounts` app handles identity and profile-level security in a Django MVT M
 - Enforce strong password validators.
 - Add lockout and cooldown policy.
 - Always audit failed login attempts.
+
+## March 2026 Practical Fixes
+
+1. Superuser verification default:
+- If email verification is enforced by custom auth backend, create superuser with verified email state.
+
+2. Safe registration save path:
+- Wrap serializer/form save path with controlled exception handling.
+- Return consistent API/UI error response instead of raw HTTP 500.
+
+3. Host/origin alignment for auth forms:
+- Keep `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, and `CORS_ALLOWED_ORIGINS` aligned with the public domain.
