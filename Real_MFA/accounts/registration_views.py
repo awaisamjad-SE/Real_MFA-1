@@ -67,7 +67,14 @@ def register(request):
     serializer = RegisterSerializer(data=request.data, context={'request': request})
     
     if serializer.is_valid():
+      try:
         user = serializer.save()
+      except Exception:
+        logger.exception("Registration failed during save")
+        return Response(
+          {"error": "Registration failed. Please try again."},
+          status=status.HTTP_400_BAD_REQUEST,
+        )
         
         # Get device data
         device = user.devices.first()

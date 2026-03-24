@@ -21,10 +21,33 @@ def wait_for_service(name: str, host: str, port: int, timeout: int = 90) -> None
       time.sleep(2)
 
 
+def parse_port(env_name: str, default: str) -> int:
+  value = os.getenv(env_name, default)
+  try:
+    return int(value)
+  except (TypeError, ValueError):
+    raise RuntimeError(
+      f"Invalid {env_name}={value!r}. Set a numeric port (example: 5432 or 25060)."
+    )
+
+
 db_host = os.getenv("DB_HOST", "db")
-db_port = int(os.getenv("DB_PORT", "5432"))
+db_port = parse_port("DB_PORT", "5432")
 redis_host = os.getenv("REDIS_HOST", "redis")
-redis_port = int(os.getenv("REDIS_PORT", "6379"))
+redis_port = parse_port("REDIS_PORT", "6379")
+
+if not db_host or db_host.startswith("<"):
+  raise RuntimeError(
+    f"Invalid DB_HOST={db_host!r}. For Docker Compose use 'db'. For managed DB use the provider hostname."
+  )
+
+if not redis_host or redis_host.startswith("<"):
+  raise RuntimeError(
+    f"Invalid REDIS_HOST={redis_host!r}. For Docker Compose use 'redis'. For managed Redis use the provider hostname."
+  )
+
+print(f"Using DB endpoint: {db_host}:{db_port}")
+print(f"Using Redis endpoint: {redis_host}:{redis_port}")
 
 wait_for_service("postgres", db_host, db_port)
 wait_for_service("redis", redis_host, redis_port)

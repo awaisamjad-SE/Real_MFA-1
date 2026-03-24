@@ -3,8 +3,11 @@ Notification Utilities
 Send security alerts and notifications to users
 """
 
+import json
+import uuid
 from django.utils import timezone
 from django.template.loader import render_to_string
+from django.core.serializers.json import DjangoJSONEncoder
 from .models import EmailNotification, NotificationLog, NotificationPreference
 import logging
 
@@ -126,10 +129,17 @@ def send_security_alert(user, alert_type, context, request=None):
         email_type=alert_config['email_type'],
         template_name=alert_config['template'],
         body=body,
-        status='pending'
+        status='pending',
+        provider='app',
+        provider_message_id=f"app-{uuid.uuid4()}"
     )
     
     # Create notification log
+    # JSONField metadata must be strictly JSON-serializable.
+    raw_metadata = {'alert_type': alert_type, **context}
+    raw_metadata.pop('user', None)
+    safe_metadata = json.loads(json.dumps(raw_metadata, cls=DjangoJSONEncoder))
+
     NotificationLog.objects.create(
         user=user,
         channel='email',
@@ -137,7 +147,7 @@ def send_security_alert(user, alert_type, context, request=None):
         message=body,
         recipient=user.email,
         delivered=False,
-        metadata={'alert_type': alert_type, **context}
+        metadata=safe_metadata
     )
     
     # TODO: Trigger async email sending via Celery

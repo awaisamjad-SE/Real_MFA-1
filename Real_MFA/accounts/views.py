@@ -4,6 +4,7 @@ Accounts Views - Registration with rate limiting (2-3/min per IP/device)
 
 import random
 import time
+import logging
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -12,6 +13,9 @@ from rest_framework.throttling import BaseThrottle
 from django.core.cache import cache
 from .serializers import RegisterSerializer
 from .verification_serializers import EmailVerificationSerializer, ResendVerificationEmailSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 # Pakistani names for demo API
@@ -162,7 +166,14 @@ def register(request):
     # Validate and create user
     serializer = RegisterSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
-        user = serializer.save()
+        try:
+            user = serializer.save()
+        except Exception:
+            logger.exception("Registration failed during save")
+            return Response(
+                {"error": "Registration failed. Please try again."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return Response(
             {
                 "id": str(user.id),

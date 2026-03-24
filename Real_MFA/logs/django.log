@@ -5582,3 +5582,5 @@ INFO 2026-02-20 02:10:02,241 basehttp 16700 24824 "OPTIONS /api/devices/sessions
 INFO 2026-02-20 02:10:02,270 basehttp 16700 24824 "GET /api/devices/sessions/ HTTP/1.1" 200 538
 INFO 2026-02-20 02:10:04,324 basehttp 16700 24824 "GET /api/devices/ HTTP/1.1" 200 1755
 INFO 2026-02-20 02:10:10,834 basehttp 16700 24824 "GET /api/totp/status/ HTTP/1.1" 200 150
+INFO 2026-03-24 13:45:08,854 autoreload 5032 9984 Watching for file changes with StatReloader
+INFO 2026-03-24 13:46:15,009 autoreload 25820 11204 Watching for file changes with StatReloader
