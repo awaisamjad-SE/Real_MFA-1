@@ -22,10 +22,14 @@ except Exception:  # pragma: no cover
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env (dev-friendly).
-# Expected location: <project_root>/Real_MFA/.env (same folder as manage.py)
+# Load baseline environment variables from .env.
+# Optionally load a second file (ENV_FILE) to override values for local testing.
+# Example (PowerShell): $env:ENV_FILE = '.env.local'
 if load_dotenv is not None:
     load_dotenv(BASE_DIR / '.env')
+    env_override = os.getenv('ENV_FILE', '').strip()
+    if env_override:
+        load_dotenv(BASE_DIR / env_override, override=True)
 
 LOGS_DIR = BASE_DIR / 'logs'
 LOGS_DIR.mkdir(exist_ok=True)
@@ -50,7 +54,28 @@ DEBUG = os.getenv('DEBUG', 'True' if IS_DEVELOPMENT else 'False') == 'True'
 if DEBUG and IS_PRODUCTION:
     DEBUG = False  # Force DEBUG=False in production
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+def _split_env_list(env_name, default_value):
+    """Split comma-separated env list and normalize spaces/trailing slashes."""
+    raw = os.getenv(env_name, default_value)
+    items = []
+    for part in raw.split(','):
+        value = part.strip().rstrip('/')
+        if value:
+            items.append(value)
+    return items
+
+
+def _normalize_allowed_host(value):
+    """Allow accidental URL values in env and convert to host-only entries."""
+    host = value.strip()
+    if '://' in host:
+        host = host.split('://', 1)[1]
+    host = host.split('/', 1)[0]
+    host = host.strip()
+    return host
+
+
+ALLOWED_HOSTS = [_normalize_allowed_host(v) for v in _split_env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')]
 
 # Application definition
 INSTALLED_APPS = [
@@ -241,17 +266,15 @@ REST_FRAMEWORK = {
 # ============================================================================
 # CORS CONFIGURATION
 # ============================================================================
-CORS_ALLOWED_ORIGINS = os.getenv(
+CORS_ALLOWED_ORIGINS = _split_env_list(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173'
-).split(',')
+    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,https://frontend-real-mfa.vercel.app,https://awaisamjad.engineer,https://www.awaisamjad.engineer'
+)
 
 # In production, only allow specific origins
 if IS_PRODUCTION:
     CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGIN_REGEXES = [
-        r"^https:\/\/.*\.yourdomain\.com$",  # Update with your domain
-    ]
+    CORS_ALLOWED_ORIGIN_REGEXES = []
 else:
     CORS_ALLOW_ALL_ORIGINS = DEBUG
     CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -287,19 +310,32 @@ CORS_EXPOSE_HEADERS = [
 # ============================================================================
 # EMAIL CONFIGURATION
 # ============================================================================
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+# SMTP provider is controlled fully by environment variables.
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@realmfa.com')
+
+# SMTP settings
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@realmfa.com')
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', 30))
+EMAIL_DELIVERY_MODE = os.getenv('EMAIL_DELIVERY_MODE', 'smtp')
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')
+BREVO_API_ENDPOINT = os.getenv('BREVO_API_ENDPOINT', 'https://api.brevo.com/v3/smtp/email')
+
+# Verification email dispatch mode:
+# False (default) sends in-request so delivery works without a Celery worker.
+# True enqueues to Celery for background sending.
+SEND_VERIFICATION_EMAIL_ASYNC = os.getenv('SEND_VERIFICATION_EMAIL_ASYNC', 'False') == 'True'
 
 # ============================================================================
 # FRONTEND URL (used for email verification links)
 # In production we want the hosted frontend domain by default.
 # ============================================================================
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://real-mfa.vercel.app')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://frontend-real-mfa.vercel.app')
 
 # ============================================================================
 # SMS CONFIGURATION (TWILIO)
@@ -423,7 +459,10 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 # CSRF configuration
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+CSRF_TRUSTED_ORIGINS = _split_env_list(
+    'CSRF_TRUSTED_ORIGINS',
+    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080,https://frontend-real-mfa.vercel.app,https://awaisamjad.engineer,https://www.awaisamjad.engineer'
+)
 
 # Security middleware should be first
 MIDDLEWARE.insert(0, 'django.middleware.security.SecurityMiddleware')

@@ -29,7 +29,10 @@ services:
       retries: 10
 
   web:
-    image: ${IMAGE:-ghcr.io/your-org/real_mfa:${IMAGE_TAG:-latest}}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${IMAGE:-real_mfa}:${IMAGE_TAG:-local}
     container_name: real_mfa_web
     restart: unless-stopped
     env_file:
@@ -46,7 +49,7 @@ services:
     command: gunicorn Real_MFA.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120 --access-logfile - --error-logfile -
 
   celery_worker:
-    image: ${IMAGE:-ghcr.io/your-org/real_mfa:${IMAGE_TAG:-latest}}
+    image: ${IMAGE:-real_mfa}:${IMAGE_TAG:-local}
     container_name: real_mfa_celery_worker
     restart: unless-stopped
     env_file:
@@ -61,7 +64,7 @@ services:
       - logs_data:/app/logs
 
   celery_beat:
-    image: ${IMAGE:-ghcr.io/your-org/real_mfa:${IMAGE_TAG:-latest}}
+    image: ${IMAGE:-real_mfa}:${IMAGE_TAG:-local}
     container_name: real_mfa_celery_beat
     restart: unless-stopped
     env_file:

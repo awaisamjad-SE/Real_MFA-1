@@ -13,10 +13,6 @@ from otp.models import OTP
 from otp.utils import hash_otp, get_client_ip
 from .models import Device, Session
 
-from rest_framework import serializers
-from django.utils import timezone
-from .models import Device
-
 
 class DeviceListSerializer(serializers.ModelSerializer):
     """
@@ -24,7 +20,9 @@ class DeviceListSerializer(serializers.ModelSerializer):
     """
     is_current = serializers.SerializerMethodField()
     trust_status = serializers.SerializerMethodField()
-    debug_info = serializers.SerializerMethodField()  # Temporary debug field
+    user_id = serializers.UUIDField(source='user.id', read_only=True)
+    ip_address = serializers.CharField(read_only=True)
+    last_ip = serializers.CharField(read_only=True)
 
     class Meta:
         model = Device
@@ -54,7 +52,6 @@ class DeviceListSerializer(serializers.ModelSerializer):
             'created_at',
             'user_id',
             'fingerprint_hash',
-            'debug_info',  # Temporary debug field
         ]
         read_only_fields = fields
 
@@ -68,10 +65,13 @@ class DeviceListSerializer(serializers.ModelSerializer):
         header_fingerprint = request.META.get('HTTP_X_DEVICE_FINGERPRINT')
         
         # Get most recent session
-        most_recent = Session.objects.filter(
-            user=request.user,
-            is_active=True
-        ).order_by('-last_activity').first()
+        try:
+            most_recent = Session.objects.filter(
+                user=request.user,
+                is_active=True
+            ).order_by('-last_activity').first()
+        except Exception:
+            most_recent = None
         
         return {
             'header_fingerprint': header_fingerprint,
@@ -121,17 +121,23 @@ class DeviceListSerializer(serializers.ModelSerializer):
         # Method 4: If header provided but doesn't match any device, 
         # fall back to session-based detection
         if header_fingerprint:
-            header_matches_any_device = Device.objects.filter(
-                user=request.user,
-                fingerprint_hash=header_fingerprint,
-                is_deleted=False
-            ).exists()
+            try:
+                header_matches_any_device = Device.objects.filter(
+                    user=request.user,
+                    fingerprint_hash=header_fingerprint,
+                    is_deleted=False
+                ).exists()
+            except Exception:
+                header_matches_any_device = False
             
             if not header_matches_any_device:
-                session = current_session or Session.objects.filter(
-                    user=request.user,
-                    is_active=True
-                ).order_by('-last_activity').first()
+                try:
+                    session = current_session or Session.objects.filter(
+                        user=request.user,
+                        is_active=True
+                    ).order_by('-last_activity').first()
+                except Exception:
+                    session = None
                 
                 if session:
                     return obj.fingerprint_hash == session.fingerprint_hash
@@ -421,6 +427,7 @@ class SessionListSerializer(serializers.ModelSerializer):
     Serializer for listing user sessions
     """
     is_current = serializers.SerializerMethodField()
+    ip_address = serializers.CharField(read_only=True)
     
     class Meta:
         model = Session

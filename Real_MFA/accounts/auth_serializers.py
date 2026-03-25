@@ -6,6 +6,7 @@ OTP resend moved to otp app
 
 import json
 from rest_framework import serializers
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -15,6 +16,20 @@ from .validators import get_location_from_ip
 from devices.models import Device, Session
 from otp.models import OTP
 from otp.utils import generate_otp_code, hash_otp, get_client_ip
+
+
+def _dispatch_device_verification_otp(user_id: str, otp_code: str) -> None:
+    """Send OTP sync by default; async only when explicitly enabled."""
+    from Real_MFA.celery_tasks import send_device_verification_otp
+
+    if getattr(settings, 'SEND_VERIFICATION_EMAIL_ASYNC', False):
+        send_device_verification_otp.delay(user_id, otp_code)
+    else:
+        result = send_device_verification_otp.apply(args=[user_id, otp_code]).result
+        if isinstance(result, dict) and result.get('status') == 'failed':
+            raise serializers.ValidationError({
+                'error': 'Unable to send verification code right now. Please try again later.'
+            })
 
 
 class DeviceLoginSerializer(serializers.Serializer):
@@ -185,9 +200,8 @@ class LoginSerializer(serializers.Serializer):
         pending_key = f"pending_device_verification:{user.id}:{fingerprint_hash}"
         redis_client.setex(pending_key, 600, str(otp.id))
         
-        # Send OTP via email (async Celery task)
-        from Real_MFA.celery_tasks import send_device_verification_otp
-        send_device_verification_otp.delay(str(user.id), otp_code)
+        # Send OTP email with same dispatch policy used by verification emails.
+        _dispatch_device_verification_otp(str(user.id), otp_code)
         
         return {
             'otp_id': str(otp.id),

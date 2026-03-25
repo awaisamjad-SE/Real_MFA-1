@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.conf import settings
 from .models import User, Profile
 from .validators import (
     validate_unique_username, validate_unique_email, validate_phone_format,
@@ -13,6 +14,14 @@ from django.utils.http import urlsafe_base64_encode
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _dispatch_verification_email(user_id: str) -> None:
+    """Send verification email sync by default; async only when explicitly enabled."""
+    if getattr(settings, 'SEND_VERIFICATION_EMAIL_ASYNC', False):
+        send_verification_email.delay(user_id)
+    else:
+        send_verification_email.apply(args=[user_id])
 
 
 def _short_exc(exc: Exception) -> str:
@@ -87,19 +96,18 @@ class RegisterSerializer(serializers.Serializer):
         token = default_token_generator.make_token(user)
         VerificationTokenManager.store_token(user.id, token)
         
-        # Enqueue async email task (don't wait for response)
+        # Send verification email.
+        # Default is synchronous so delivery works even without a worker.
         try:
-            result = send_verification_email.delay(str(user.id))
-            # In eager mode this executes immediately; otherwise it just enqueues.
+            _dispatch_verification_email(str(user.id))
             logger.info(
-                "Verification email task scheduled (eager=%s) for user_id=%s task_id=%s",
-                getattr(result, 'is_eager', None),
+                "Verification email dispatched for user_id=%s (async=%s)",
                 str(user.id),
-                getattr(result, 'id', None),
+                getattr(settings, 'SEND_VERIFICATION_EMAIL_ASYNC', False),
             )
         except Exception as exc:
             logger.warning(
-                "Failed to dispatch verification email task for user_id=%s: %s",
+                "Failed to send verification email for user_id=%s: %s",
                 str(user.id),
                 _short_exc(exc),
             )

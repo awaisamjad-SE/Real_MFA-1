@@ -156,6 +156,38 @@ class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True, min_length=8)
     new_password2 = serializers.CharField(write_only=True, min_length=8)
+
+    def to_internal_value(self, data):
+        """
+        Accept both snake_case and common frontend camelCase aliases.
+        """
+        payload = dict(data)
+
+        if 'current_password' not in payload:
+            for key in ('currentPassword', 'old_password', 'oldPassword'):
+                if key in payload and payload[key] not in (None, ''):
+                    payload['current_password'] = payload[key]
+                    break
+
+        if 'new_password' not in payload:
+            for key in ('newPassword',):
+                if key in payload and payload[key] not in (None, ''):
+                    payload['new_password'] = payload[key]
+                    break
+
+        if 'new_password2' not in payload:
+            for key in (
+                'new_password_confirm',
+                'newPassword2',
+                'confirm_password',
+                'confirmPassword',
+                'password_confirmation',
+            ):
+                if key in payload and payload[key] not in (None, ''):
+                    payload['new_password2'] = payload[key]
+                    break
+
+        return super().to_internal_value(payload)
     
     def validate_current_password(self, value):
         user = self.context['request'].user

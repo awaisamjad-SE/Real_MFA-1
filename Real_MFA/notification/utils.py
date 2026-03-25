@@ -8,6 +8,8 @@ import uuid
 from django.utils import timezone
 from django.template.loader import render_to_string
 from django.core.serializers.json import DjangoJSONEncoder
+from django.conf import settings
+from Real_MFA.email_provider import send_app_email
 from .models import EmailNotification, NotificationLog, NotificationPreference
 import logging
 
@@ -140,7 +142,7 @@ def send_security_alert(user, alert_type, context, request=None):
     raw_metadata.pop('user', None)
     safe_metadata = json.loads(json.dumps(raw_metadata, cls=DjangoJSONEncoder))
 
-    NotificationLog.objects.create(
+    notification_log = NotificationLog.objects.create(
         user=user,
         channel='email',
         subject=alert_config['subject'],
@@ -150,10 +152,28 @@ def send_security_alert(user, alert_type, context, request=None):
         metadata=safe_metadata
     )
     
-    # TODO: Trigger async email sending via Celery
-    # send_email_task.delay(email_notification.id)
-    
-    logger.info(f"Security alert '{alert_type}' queued for user {user.email}")
+    # Send email immediately so user receives security alerts reliably.
+    try:
+        send_result = send_app_email(
+            subject=alert_config['subject'],
+            message=body,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', ''),
+            recipient_list=[user.email],
+            fail_silently=False,
+            html_message=body,
+        )
+        provider_message_id = send_result.get('message_id') or f"smtp-{uuid.uuid4()}"
+        email_notification.provider = send_result.get('provider', 'smtp')
+        email_notification.save(update_fields=['provider'])
+        email_notification.mark_sent(provider_message_id=provider_message_id)
+        notification_log.delivered = True
+        notification_log.save(update_fields=['delivered'])
+        logger.info(f"Security alert '{alert_type}' sent to user {user.email}")
+    except Exception as exc:
+        email_notification.mark_failed(str(exc))
+        notification_log.delivered = False
+        notification_log.save(update_fields=['delivered'])
+        logger.error("Failed to send security alert '%s' to %s: %s", alert_type, user.email, exc)
     
     return email_notification
 

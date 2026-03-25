@@ -5584,3 +5584,125 @@ INFO 2026-02-20 02:10:04,324 basehttp 16700 24824 "GET /api/devices/ HTTP/1.1" 2
 INFO 2026-02-20 02:10:10,834 basehttp 16700 24824 "GET /api/totp/status/ HTTP/1.1" 200 150
 INFO 2026-03-24 13:45:08,854 autoreload 5032 9984 Watching for file changes with StatReloader
 INFO 2026-03-24 13:46:15,009 autoreload 25820 11204 Watching for file changes with StatReloader
+INFO 2026-03-25 06:33:02,618 autoreload 28392 8828 Watching for file changes with StatReloader
+INFO 2026-03-25 06:34:02,428 autoreload 13820 14444 Watching for file changes with StatReloader
+INFO 2026-03-25 06:51:56,653 autoreload 8788 7548 Watching for file changes with StatReloader
+INFO 2026-03-25 06:52:22,794 autoreload 7684 6172 Watching for file changes with StatReloader
+INFO 2026-03-25 06:53:29,230 autoreload 7684 6172 C:\Users\awais\OneDrive\Documents\GitHub\Real_MFA-1\Real_MFA\Real_MFA\settings.py changed, reloading.
+INFO 2026-03-25 06:53:31,740 autoreload 9624 27724 Watching for file changes with StatReloader
+INFO 2026-03-25 06:53:59,959 autoreload 23484 21568 Watching for file changes with StatReloader
+INFO 2026-03-25 06:55:19,035 autoreload 1340 20640 Watching for file changes with StatReloader
+INFO 2026-03-25 06:57:42,228 autoreload 19192 15616 Watching for file changes with StatReloader
+INFO 2026-03-25 06:58:16,162 autoreload 14500 5932 Watching for file changes with StatReloader
+WARNING 2026-03-25 06:58:38,495 log 14500 20872 Bad Request: /api/auth/register/
+WARNING 2026-03-25 06:58:38,496 basehttp 14500 20872 "POST //api/auth/register/ HTTP/1.1" 400 78
+INFO 2026-03-25 06:59:07,472 autoreload 5968 15352 Watching for file changes with StatReloader
+INFO 2026-03-25 06:59:11,966 basehttp 5968 13192 "GET /admin/ HTTP/1.1" 302 0
+INFO 2026-03-25 06:59:12,051 basehttp 5968 13192 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4170
+INFO 2026-03-25 06:59:12,133 basehttp 5968 13192 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:12,140 basehttp 5968 7104 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:12,146 basehttp 5968 20164 "GET /static/admin/css/login.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:12,146 basehttp 5968 5964 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:12,147 basehttp 5968 23756 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:12,150 basehttp 5968 21876 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:12,522 basehttp 5968 21876 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:24,043 utils 5968 21876 Security alert 'password_changed' sent to user admin@gmail.com
+INFO 2026-03-25 06:59:24,043 signals 5968 21876 Password change notification sent to admin@gmail.com
+INFO 2026-03-25 06:59:24,095 basehttp 5968 21876 "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2026-03-25 06:59:24,161 basehttp 5968 21876 "GET /admin/ HTTP/1.1" 200 35281
+INFO 2026-03-25 06:59:24,223 basehttp 5968 21876 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:24,226 basehttp 5968 7104 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:24,226 basehttp 5968 20164 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:24,226 basehttp 5968 13192 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:24,226 basehttp 5968 23756 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:24,329 basehttp 5968 5964 "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO 2026-03-25 06:59:24,366 basehttp 5968 5964 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:24,415 basehttp 5968 5964 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+INFO 2026-03-25 06:59:24,415 basehttp 5968 23756 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 331
+INFO 2026-03-25 06:59:24,415 basehttp 5968 13192 "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 200 581
+INFO 2026-03-25 06:59:26,439 basehttp 5968 13192 "GET /admin/accounts/user/ HTTP/1.1" 200 66406
+INFO 2026-03-25 06:59:26,511 basehttp 5968 13192 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:26,522 basehttp 5968 21876 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:26,523 basehttp 5968 23756 "GET /static/admin/css/changelists.css HTTP/1.1" 200 6878
+INFO 2026-03-25 06:59:26,524 basehttp 5968 13192 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:26,526 basehttp 5968 7104 "GET /static/admin/js/jquery.init.js HTTP/1.1" 200 347
+INFO 2026-03-25 06:59:26,528 basehttp 5968 21876 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:26,535 basehttp 5968 13192 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:26,543 basehttp 5968 23756 "GET /static/admin/js/core.js HTTP/1.1" 200 6208
+INFO 2026-03-25 06:59:26,550 basehttp 5968 7104 "GET /static/admin/js/actions.js HTTP/1.1" 200 8076
+INFO 2026-03-25 06:59:26,558 basehttp 5968 21876 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 200 9777
+INFO 2026-03-25 06:59:26,561 basehttp 5968 5964 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-03-25 06:59:26,566 basehttp 5968 13192 "GET /static/admin/js/urlify.js HTTP/1.1" 200 7887
+INFO 2026-03-25 06:59:26,568 basehttp 5968 23756 "GET /static/admin/js/prepopulate.js HTTP/1.1" 200 1531
+INFO 2026-03-25 06:59:26,578 basehttp 5968 20164 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 200 285314
+INFO 2026-03-25 06:59:26,588 basehttp 5968 21876 "GET /static/admin/img/search.svg HTTP/1.1" 200 458
+INFO 2026-03-25 06:59:26,590 basehttp 5968 5964 "GET /static/admin/img/icon-no.svg HTTP/1.1" 200 560
+INFO 2026-03-25 06:59:26,623 basehttp 5968 7104 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 200 325171
+INFO 2026-03-25 06:59:26,644 basehttp 5968 7104 "GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 436
+INFO 2026-03-25 06:59:26,756 basehttp 5968 7104 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:26,782 basehttp 5968 7104 "GET /static/admin/js/filters.js HTTP/1.1" 200 978
+INFO 2026-03-25 06:59:26,828 basehttp 5968 5964 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 200 1097
+INFO 2026-03-25 06:59:26,828 basehttp 5968 7104 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 200 331
+INFO 2026-03-25 06:59:31,655 basehttp 5968 7104 "GET /admin/accounts/user/552cec7f-dcae-4cf8-9ec1-98dbc4432d1b/change/ HTTP/1.1" 200 85023
+INFO 2026-03-25 06:59:31,733 basehttp 5968 23756 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:31,733 basehttp 5968 13192 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:31,737 basehttp 5968 20164 "GET /static/admin/js/inlines.js HTTP/1.1" 200 15628
+INFO 2026-03-25 06:59:31,740 basehttp 5968 5964 "GET /static/admin/js/calendar.js HTTP/1.1" 200 9141
+INFO 2026-03-25 06:59:31,740 basehttp 5968 23756 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:31,742 basehttp 5968 21876 "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 200 19319
+INFO 2026-03-25 06:59:31,742 basehttp 5968 7104 "GET /static/admin/css/forms.css HTTP/1.1" 200 8525
+INFO 2026-03-25 06:59:31,743 basehttp 5968 13192 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:31,744 basehttp 5968 20164 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:31,755 basehttp 5968 5964 "GET /static/admin/js/SelectBox.js HTTP/1.1" 200 4530
+INFO 2026-03-25 06:59:31,760 basehttp 5968 7104 "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 200 15845
+INFO 2026-03-25 06:59:31,791 basehttp 5968 17984 "GET /static/admin/js/inlines.js HTTP/1.1" 200 15628
+INFO 2026-03-25 06:59:31,792 basehttp 5968 11232 "GET /static/admin/js/calendar.js HTTP/1.1" 200 9141
+INFO 2026-03-25 06:59:31,796 basehttp 5968 23756 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-03-25 06:59:31,842 basehttp 5968 11232 "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 200 19319
+INFO 2026-03-25 06:59:31,842 basehttp 5968 17984 "GET /static/admin/js/SelectBox.js HTTP/1.1" 200 4530
+INFO 2026-03-25 06:59:31,843 basehttp 5968 23756 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+INFO 2026-03-25 06:59:31,846 basehttp 5968 7104 "GET /static/admin/css/widgets.css HTTP/1.1" 200 11973
+INFO 2026-03-25 06:59:31,846 basehttp 5968 27128 "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 200 15845
+INFO 2026-03-25 06:59:31,922 basehttp 5968 7104 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:31,925 basehttp 5968 23756 "GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+INFO 2026-03-25 06:59:32,039 basehttp 5968 27128 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+INFO 2026-03-25 06:59:32,041 basehttp 5968 11232 "GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+INFO 2026-03-25 06:59:32,155 basehttp 5968 23756 "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 200 1086
+INFO 2026-03-25 06:59:32,155 basehttp 5968 7104 "GET /static/admin/img/icon-clock.svg HTTP/1.1" 200 677
+INFO 2026-03-25 06:59:32,157 basehttp 5968 5964 "GET /static/admin/img/selector-icons.svg HTTP/1.1" 200 3291
+INFO 2026-03-25 06:59:36,778 basehttp 5968 5964 "GET /admin/accounts/user/552cec7f-dcae-4cf8-9ec1-98dbc4432d1b/delete/ HTTP/1.1" 200 26996
+INFO 2026-03-25 06:59:36,845 basehttp 5968 7104 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:36,845 basehttp 5968 20164 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:36,845 basehttp 5968 23756 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:36,845 basehttp 5968 5964 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:36,846 basehttp 5968 13192 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:36,882 basehttp 5968 13192 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:36,928 basehttp 5968 13192 "GET /static/admin/js/cancel.js HTTP/1.1" 200 884
+INFO 2026-03-25 06:59:36,939 basehttp 5968 11232 "GET /static/admin/js/cancel.js HTTP/1.1" 200 884
+INFO 2026-03-25 06:59:38,192 basehttp 5968 13192 "POST /admin/accounts/user/552cec7f-dcae-4cf8-9ec1-98dbc4432d1b/delete/ HTTP/1.1" 302 0
+INFO 2026-03-25 06:59:38,317 basehttp 5968 13192 "GET /admin/accounts/user/ HTTP/1.1" 200 65642
+INFO 2026-03-25 06:59:38,408 basehttp 5968 5964 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:38,408 basehttp 5968 23756 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:38,408 basehttp 5968 21876 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:38,409 basehttp 5968 20164 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:38,410 basehttp 5968 13192 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-03-25 06:59:38,429 basehttp 5968 7104 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-03-25 06:59:38,484 basehttp 5968 7104 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+WARNING 2026-03-25 06:59:44,421 log 5968 1364 Bad Request: /api/auth/register/
+WARNING 2026-03-25 06:59:44,421 basehttp 5968 1364 "POST //api/auth/register/ HTTP/1.1" 400 40
+INFO 2026-03-25 07:00:01,896 utils 5968 1364 Security alert 'new_device_login' sent to user aaap1828@gmail.com
+INFO 2026-03-25 07:00:01,897 signals 5968 1364 New device login notification sent to aaap1828@gmail.com
+INFO 2026-03-25 07:00:01,943 celery_tasks 5968 1364 Verification link for aaap1828@gmail.com: https://real-mfa.vercel.app/verify-email/ZjE4NjQzMTUtNWU3Yi00ZGQ0LTljYmMtMDc0MGQ4NjQ5N2I2/d5zi41-da04c322f7bcf8dc728763b9e1f06a03/
+INFO 2026-03-25 07:00:10,187 celery_tasks 5968 1364 Verification email sent to aaap1828@gmail.com
+INFO 2026-03-25 07:00:10,234 trace 5968 1364 Task Real_MFA.celery_tasks.send_verification_email[62fa8770-d552-4a82-966a-06fad72e9a5a] succeeded in 8.295999999972992s: {'status': 'success', 'user_id': 'f1864315-5e7b-4dd4-9cbc-0740d86497b6'}
+INFO 2026-03-25 07:00:10,234 serializers 5968 1364 Verification email dispatched for user_id=f1864315-5e7b-4dd4-9cbc-0740d86497b6 (async=False)
+INFO 2026-03-25 07:00:10,251 basehttp 5968 1364 "POST //api/auth/register/ HTTP/1.1" 201 210
+INFO 2026-03-25 07:01:15,638 basehttp 5968 7104 "GET /admin/notification/notificationlog/ HTTP/1.1" 200 32270
+INFO 2026-03-25 07:01:15,731 basehttp 5968 13192 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-03-25 07:01:15,733 basehttp 5968 21876 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-03-25 07:01:15,733 basehttp 5968 7104 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-03-25 07:01:15,733 basehttp 5968 20164 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-03-25 07:01:15,733 basehttp 5968 23756 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-03-25 07:01:15,751 basehttp 5968 5964 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-03-25 07:01:15,837 basehttp 5968 5964 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-03-25 07:02:35,549 autoreload 4540 13784 Watching for file changes with StatReloader

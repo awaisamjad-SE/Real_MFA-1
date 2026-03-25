@@ -77,7 +77,7 @@ class ChangePasswordView(APIView):
     {
         "current_password": "old_password",
         "new_password": "new_password",
-        "new_password2": "new_password"
+        "new_password_confirm": "new_password"
     }
     """
     permission_classes = [IsAuthenticated]

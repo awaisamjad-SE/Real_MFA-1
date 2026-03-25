@@ -63,7 +63,7 @@ app.conf.update(
         },
         'send-pending-notifications': {
             'task': 'notification.tasks.send_pending_notifications',
-            'schedule': crontab(minute='*/5'),  # Every 5 minutes
+            'schedule': crontab(minute=0),  # Every hour
         },
     },
 )

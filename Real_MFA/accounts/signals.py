@@ -5,10 +5,21 @@ Accounts Signals - Auto-create related objects and send notifications
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver, Signal
 from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from .models import User, Profile
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _dispatch_verification_email(user_id: str) -> None:
+    """Send sync by default; async only when explicitly enabled."""
+    from Real_MFA.celery_tasks import send_verification_email
+
+    if getattr(settings, 'SEND_VERIFICATION_EMAIL_ASYNC', False):
+        send_verification_email.delay(user_id)
+    else:
+        send_verification_email.apply(args=[user_id])
 
 # Custom signals for security events
 password_changed = Signal()
@@ -46,16 +57,19 @@ def send_verification_email_on_create(sender, instance, created, **kwargs):
 
     # Import here to avoid circular imports
     from .redis_utils import VerificationTokenManager
-    from Real_MFA.celery_tasks import send_verification_email
 
     try:
         # Generate and store token
         token = default_token_generator.make_token(instance)
         VerificationTokenManager.store_token(instance.id, token)
 
-        # Send email task
-        send_verification_email.delay(str(instance.id))
-        logger.info("Verification email triggered via signal for user_id=%s", instance.id)
+        # Send email with same dispatch policy used by registration flow.
+        _dispatch_verification_email(str(instance.id))
+        logger.info(
+            "Verification email dispatched via signal for user_id=%s (async=%s)",
+            instance.id,
+            getattr(settings, 'SEND_VERIFICATION_EMAIL_ASYNC', False),
+        )
     except Exception as exc:
         logger.warning("Failed to send verification email via signal for user_id=%s: %s", instance.id, exc)
 

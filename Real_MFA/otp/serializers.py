@@ -3,11 +3,22 @@ OTP Serializers - Resend OTP for device verification
 """
 
 from rest_framework import serializers
+from django.conf import settings
 from django.utils import timezone
 from accounts.models import User
 from accounts.redis_utils import redis_client
 from .models import OTP
 from .utils import generate_otp_code, hash_otp, get_client_ip
+
+
+def _dispatch_device_verification_otp(user_id: str, otp_code: str) -> None:
+    """Send OTP sync by default; async only when explicitly enabled."""
+    from Real_MFA.celery_tasks import send_device_verification_otp
+
+    if getattr(settings, 'SEND_VERIFICATION_EMAIL_ASYNC', False):
+        send_device_verification_otp.delay(user_id, otp_code)
+    else:
+        send_device_verification_otp.apply(args=[user_id, otp_code])
 
 
 class ResendDeviceOTPSerializer(serializers.Serializer):
@@ -100,8 +111,8 @@ class ResendDeviceOTPSerializer(serializers.Serializer):
         pending_key = f"pending_device_verification:{user.id}:{fingerprint_hash}"
         redis_client.setex(pending_key, 600, str(otp.id))
         
-        # TODO: Send OTP via email
-        # send_device_verification_email.delay(str(user.id), otp_code)
+        # Send OTP email.
+        _dispatch_device_verification_otp(str(user.id), otp_code)
         
         remaining = 3 - int(redis_client.get(limit_key) or 0)
         

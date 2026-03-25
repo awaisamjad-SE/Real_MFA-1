@@ -3,6 +3,7 @@ Email Verification Serializers - Token validation and email verification logic
 """
 
 from rest_framework import serializers
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
@@ -89,7 +90,10 @@ class ResendVerificationEmailSerializer(serializers.Serializer):
         token = default_token_generator.make_token(user)
         VerificationTokenManager.store_token(user.id, token)
         
-        # Enqueue new email task
-        send_verification_email.delay(str(user.id))
+        # Send email sync by default; async if explicitly enabled.
+        if getattr(settings, 'SEND_VERIFICATION_EMAIL_ASYNC', False):
+            send_verification_email.delay(str(user.id))
+        else:
+            send_verification_email.apply(args=[str(user.id)])
         
         return {"message": "Verification email resent.", "remaining": ResendLimiter.get_remaining_resends(user.id)}

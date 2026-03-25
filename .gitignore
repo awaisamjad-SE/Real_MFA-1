@@ -4,3 +4,9 @@ Real_MFA/.env/
 Real_MFA/venv/
 Real_MFA/.env.example/
 Real_MFA/venv1/
+
+# Environment files (security)
+.env
+.env.*
+*.env
+*/*.env

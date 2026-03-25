@@ -4,7 +4,6 @@ Email verification and notification delivery
 """
 
 from celery import shared_task
-from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode
@@ -12,9 +11,11 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from accounts.models import User
 from notification.models import EmailNotification
+from Real_MFA.email_provider import send_app_email
 import uuid
 import smtplib
 import logging
+import urllib.error
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +74,11 @@ def send_verification_email(self, user_id):
                 user.email,
             )
         else:
-            # Send email via SMTP
-            send_mail(
+            # Send email using configured provider mode.
+            send_result = send_app_email(
                 subject=subject,
                 message="Please verify your email by clicking the link above.",
-                from_email=settings.EMAIL_HOST_USER,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', ''),
                 recipient_list=[user.email],
                 html_message=html_message,
                 fail_silently=False
@@ -93,9 +94,9 @@ def send_verification_email(self, user_id):
             body=html_message,
             status='sent',
             sent_at=timezone.now(),
-            provider='smtp',
+            provider=send_result.get('provider', 'smtp'),
             # Unique constraint: blank string will collide on every insert.
-            provider_message_id=f"smtp-{uuid.uuid4()}"
+            provider_message_id=send_result.get('message_id') or f"smtp-{uuid.uuid4()}"
         )
         
         logger.info(f"Verification email sent to {user.email}")
@@ -144,11 +145,11 @@ def send_password_reset_otp(self, user_id, otp_code):
         <p>If you didn't request this, please ignore this email or contact support if you're concerned.</p>
         """
         
-        # Send email
-        send_mail(
+        # Send email using configured provider mode.
+        send_result = send_app_email(
             subject=subject,
             message=f"Your password reset code is: {otp_code}. This code expires in 15 minutes.",
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', ''),
             recipient_list=[user.email],
             html_message=html_message,
             fail_silently=False
@@ -164,8 +165,8 @@ def send_password_reset_otp(self, user_id, otp_code):
             body=html_message,
             status='sent',
             sent_at=timezone.now(),
-            provider='smtp',
-            provider_message_id=f"smtp-{uuid.uuid4()}"
+            provider=send_result.get('provider', 'smtp'),
+            provider_message_id=send_result.get('message_id') or f"smtp-{uuid.uuid4()}"
         )
         
         logger.info(f"Password reset OTP sent to {user.email}")
@@ -205,11 +206,11 @@ def send_device_verification_otp(self, user_id, otp_code):
         <p>If this wasn't you, please change your password immediately.</p>
         """
         
-        # Send email
-        send_mail(
+        # Send email using configured provider mode.
+        send_result = send_app_email(
             subject=subject,
             message=f"Your device verification code is: {otp_code}. This code expires in 10 minutes.",
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', ''),
             recipient_list=[user.email],
             html_message=html_message,
             fail_silently=False
@@ -225,8 +226,8 @@ def send_device_verification_otp(self, user_id, otp_code):
             body=html_message,
             status='sent',
             sent_at=timezone.now(),
-            provider='smtp',
-            provider_message_id=f"smtp-{uuid.uuid4()}"
+            provider=send_result.get('provider', 'smtp'),
+            provider_message_id=send_result.get('message_id') or f"smtp-{uuid.uuid4()}"
         )
         
         logger.info(f"Device verification OTP sent to {user.email}")
@@ -238,6 +239,11 @@ def send_device_verification_otp(self, user_id, otp_code):
         
     except Exception as exc:
         logger.error("Error sending device verification OTP: %s", _short_exc(exc))
-        if getattr(settings, 'DEBUG', False):
-            return {'status': 'failed', 'reason': 'send_failed'}
+        if getattr(settings, 'DEBUG', False) or getattr(self.request, 'is_eager', False):
+            return {'status': 'failed', 'reason': 'send_failed', 'error': _short_exc(exc)}
+
+        # Provider permission/auth errors are permanent and should not be retried.
+        if isinstance(exc, urllib.error.HTTPError) and exc.code in (400, 401, 403, 404):
+            return {'status': 'failed', 'reason': 'provider_rejected', 'error': _short_exc(exc)}
+
         raise self.retry(exc=exc, countdown=5 ** self.request.retries)

@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import logging
 
 from .models import Device, Session
 from .serializers import (
@@ -17,6 +18,8 @@ from .serializers import (
     SessionRevokeSerializer,
     RevokeAllSessionsSerializer
 )
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
@@ -101,22 +104,29 @@ class DeviceListView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        devices = Device.objects.filter(
-            user=request.user,
-            is_deleted=False
-        ).order_by('-last_used_at')
-        
-        serializer = DeviceListSerializer(
-            devices,
-            many=True,
-            context={'request': request}
-        )
-        
-        
-        return Response({
-            'count': devices.count(),
-            'devices': serializer.data
-        }, status=status.HTTP_200_OK)
+        try:
+            devices = Device.objects.filter(
+                user=request.user,
+                is_deleted=False
+            ).order_by('-last_used_at')
+
+            serializer = DeviceListSerializer(
+                devices,
+                many=True,
+                context={'request': request}
+            )
+
+            return Response({
+                'count': devices.count(),
+                'devices': serializer.data
+            }, status=status.HTTP_200_OK)
+        except Exception as exc:
+            logger.error("Failed to fetch devices for user %s: %s", request.user.id, exc, exc_info=True)
+            return Response({
+                'count': 0,
+                'devices': [],
+                'detail': 'Unable to fetch devices right now.'
+            }, status=status.HTTP_200_OK)
 
 
 class DeviceRevokeView(APIView):
@@ -182,21 +192,29 @@ class SessionListView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        sessions = Session.objects.filter(
-            user=request.user,
-            is_active=True
-        ).order_by('-last_activity')
-        
-        serializer = SessionListSerializer(
-            sessions,
-            many=True,
-            context={'request': request}
-        )
-        
-        return Response({
-            'count': sessions.count(),
-            'sessions': serializer.data
-        }, status=status.HTTP_200_OK)
+        try:
+            sessions = Session.objects.filter(
+                user=request.user,
+                is_active=True
+            ).order_by('-last_activity')
+
+            serializer = SessionListSerializer(
+                sessions,
+                many=True,
+                context={'request': request}
+            )
+
+            return Response({
+                'count': sessions.count(),
+                'sessions': serializer.data
+            }, status=status.HTTP_200_OK)
+        except Exception as exc:
+            logger.error("Failed to fetch sessions for user %s: %s", request.user.id, exc, exc_info=True)
+            return Response({
+                'count': 0,
+                'sessions': [],
+                'detail': 'Unable to fetch sessions right now.'
+            }, status=status.HTTP_200_OK)
 
 
 class SessionRevokeView(APIView):
