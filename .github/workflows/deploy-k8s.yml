@@ -16,7 +16,17 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Validate required secrets
+        shell: bash
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG }}
+        run: |
+          if [ -z "$KUBECONFIG_B64" ]; then
+            echo "KUBECONFIG secret is missing. Add it in GitHub Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
 
       - name: Install and configure kubectl
         run: |
@@ -26,10 +36,16 @@ jobs:
           sudo mv kubectl /usr/local/bin/
 
       - name: Create kubeconfig from secret
+        shell: bash
         run: |
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
+
+          # Verify decoded kubeconfig is valid YAML with required keys.
+          grep -q "apiVersion:" $HOME/.kube/config
+          grep -q "clusters:" $HOME/.kube/config
+          grep -q "users:" $HOME/.kube/config
 
       - name: Verify cluster connectivity
         run: |
