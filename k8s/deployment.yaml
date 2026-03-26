@@ -1,0 +1,202 @@
+---
+# Deployment - Manages Django app pods
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: real-mfa-web
+  namespace: real-mfa-prod
+  labels:
+    app: real-mfa
+    tier: web
+spec:
+  replicas: 2  # Start with 2 instances for availability
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0  # Zero downtime deploy
+  selector:
+    matchLabels:
+      app: real-mfa
+      tier: web
+  template:
+    metadata:
+      labels:
+        app: real-mfa
+        tier: web
+    spec:
+      # ImagePullSecrets for private Docker Hub (optional, if repo is private)
+      imagePullSecrets:
+        - name: dockerhub-secret
+      
+      # Init container to run migrations before app starts
+      initContainers:
+        - name: migrate
+          image: awaisamjad1828/real_mfa:latest
+          imagePullPolicy: Always
+          command: ["python", "manage.py", "migrate", "--noinput"]
+          envFrom:
+            - configMapRef:
+                name: real-mfa-config
+            - secretRef:
+                name: real-mfa-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      
+      # Main containers
+      containers:
+        - name: web
+          image: awaisamjad1828/real_mfa:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          
+          # Environment variables from ConfigMap and Secret
+          envFrom:
+            - configMapRef:
+                name: real-mfa-config
+            - secretRef:
+                name: real-mfa-secrets
+          
+          # Health checks
+          livenessProbe:
+            httpGet:
+              path: /healthz/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          readinessProbe:
+            httpGet:
+              path: /healthz/
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          
+          # Resource requests and limits
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          
+          # Security context
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          
+          # Volume mounts for logs and uploads
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+            - name: media
+              mountPath: /app/media
+            - name: staticfiles
+              mountPath: /app/staticfiles
+        
+        # Celery Worker container
+        - name: celery-worker
+          image: awaisamjad1828/real_mfa:latest
+          imagePullPolicy: Always
+          command: ["celery", "-A", "Real_MFA", "worker", "--loglevel=info", "--concurrency=4"]
+          
+          envFrom:
+            - configMapRef:
+                name: real-mfa-config
+            - secretRef:
+                name: real-mfa-secrets
+          
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+        
+        # Celery Beat container (scheduled tasks)
+        - name: celery-beat
+          image: awaisamjad1828/real_mfa:latest
+          imagePullPolicy: Always
+          command: ["celery", "-A", "Real_MFA", "beat", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+          
+          envFrom:
+            - configMapRef:
+                name: real-mfa-config
+            - secretRef:
+                name: real-mfa-secrets
+          
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+      
+      # Volumes
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: media
+          emptyDir: {}  # In production, use PersistentVolumeClaim
+        - name: staticfiles
+          emptyDir: {}  # In production, use PersistentVolumeClaim
+      
+      # Pod disruption budget for high availability
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - real-mfa
+                topologyKey: kubernetes.io/hostname

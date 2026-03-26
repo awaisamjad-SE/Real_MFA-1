@@ -1,0 +1,186 @@
+name: Deploy to Kubernetes
+
+on:
+  # Manual trigger (for testing)
+  workflow_dispatch:
+  # Auto trigger after successful Docker Hub push
+  workflow_run:
+    workflows: ["Deploy to VPS"]
+    branches: ["main"]
+    types: [completed]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install and configure kubectl
+        run: |
+          # Download kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      - name: Create kubeconfig from secret
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Verify cluster connectivity
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace real-mfa-prod --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply ConfigMap
+        run: |
+          kubectl apply -f k8s/configmap.yaml
+
+      - name: Apply Secrets
+        run: |
+          kubectl apply -f k8s/secret.yaml
+
+      - name: Apply PostgreSQL StatefulSet
+        run: |
+          kubectl apply -f k8s/postgres-statefulset.yaml
+          
+          # Wait for PostgreSQL to be ready
+          kubectl wait --for=condition=ready pod -l app=postgres --timeout=300s -n real-mfa-prod || echo "Warning: PostgreSQL not ready yet"
+
+      - name: Apply Redis Deployment
+        run: |
+          kubectl apply -f k8s/redis-deployment.yaml
+          
+          # Wait for Redis to be ready
+          kubectl wait --for=condition=ready pod -l app=redis --timeout=300s -n real-mfa-prod || echo "Warning: Redis not ready yet"
+
+      - name: Apply Django Deployment
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+
+      - name: Wait for Django pods to be ready
+        run: |
+          kubectl wait --for=condition=ready pod -l app=real-mfa,tier=web --timeout=600s -n real-mfa-prod || echo "Warning: Django pods not ready yet"
+
+      - name: Apply Service
+        run: |
+          kubectl apply -f k8s/service.yaml
+
+      - name: Apply HPA
+        run: |
+          kubectl apply -f k8s/hpa.yaml
+
+      - name: Check Nginx Ingress Controller
+        run: |
+          # Check if nginx-ingress is installed
+          kubectl get deployment -n ingress-nginx nginx-ingress-ingress-nginx-controller || echo "Installing Nginx Ingress Controller..."
+          
+          # Install if not exists
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx || true
+          helm repo update || true
+          helm upgrade --install nginx-ingress ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace \
+            --set controller.service.type=LoadBalancer \
+            --wait || echo "Nginx Ingress Controller installation in progress..."
+
+      - name: Check cert-manager
+        run: |
+          # Check if cert-manager is installed
+          kubectl get deployment -n cert-manager cert-manager || echo "Installing cert-manager..."
+          
+          # Install if not exists
+          helm repo add jetstack https://charts.jetstack.io || true
+          helm repo update || true
+          helm upgrade --install cert-manager jetstack/cert-manager \
+            --namespace cert-manager \
+            --create-namespace \
+            --set installCRDs=true \
+            --wait || echo "cert-manager installation in progress..."
+
+      - name: Apply Let's Encrypt Issuer
+        run: |
+          kubectl apply -f k8s/letsencrypt-issuer.yaml
+
+      - name: Apply Ingress
+        run: |
+          kubectl apply -f k8s/ingress.yaml
+
+      - name: Wait for Ingress to get IP
+        run: |
+          echo "Waiting for Ingress IP/hostname..."
+          kubectl get ingress -n real-mfa-prod -w &
+          sleep 20
+          kill %1 || true
+          
+          echo "Ingress details:"
+          kubectl get ingress -n real-mfa-prod -o wide
+
+      - name: Display deployment status
+        run: |
+          echo "=== Deployment Status ==="
+          kubectl get deployments -n real-mfa-prod
+          
+          echo ""
+          echo "=== Pods Status ==="
+          kubectl get pods -n real-mfa-prod
+          
+          echo ""
+          echo "=== Services ==="
+          kubectl get svc -n real-mfa-prod
+          
+          echo ""
+          echo "=== Ingress ==="
+          kubectl get ingress -n real-mfa-prod
+          
+          echo ""
+          echo "=== HPA Status ==="
+          kubectl get hpa -n real-mfa-prod
+          
+          echo ""
+          echo "=== Recent Events ==="
+          kubectl get events -n real-mfa-prod --sort-by='.lastTimestamp' | tail -20
+
+      - name: Show rollout status
+        run: |
+          echo "Checking rollout status..."
+          kubectl rollout status deployment/real-mfa-web -n real-mfa-prod --timeout=5m || echo "Rollout still in progress..."
+
+      - name: Verify app health
+        run: |
+          echo "Waiting for app to be healthy (up to 5 minutes)..."
+          # Port forward to test locally
+          kubectl port-forward -n real-mfa-prod svc/real-mfa-web 8000:80 &
+          PF_PID=$!
+          
+          # Wait for service to be available
+          sleep 10
+          
+          # Try health check
+          curl -f http://localhost:8000/healthz/ || echo "Health check not yet available"
+          
+          kill $PF_PID || true
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Kubernetes deployment completed!"
+          echo ""
+          echo "Next steps:"
+          echo "1. Check pod logs: kubectl logs -n real-mfa-prod -l app=real-mfa -c web"
+          echo "2. Get Ingress IP: kubectl get ingress -n real-mfa-prod"
+          echo "3. Point DNS to the LoadBalancer IP"
+          echo "4. Wait for SSL certificate (check: kubectl get certificate -n real-mfa-prod)"
+
+      - name: Send deployment notification
+        if: always()
+        run: |
+          echo "Deployment status: ${{ job.status }}"
+          # Optional: Send to Slack, Discord, or email

@@ -1,0 +1,24 @@
+---
+# Service - Internal load balancer for the deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: real-mfa-web
+  namespace: real-mfa-prod
+  labels:
+    app: real-mfa
+    tier: web
+spec:
+  type: ClusterIP  # Internal service, external access via Ingress
+  selector:
+    app: real-mfa
+    tier: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600

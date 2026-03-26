@@ -1,0 +1,8 @@
+---
+# Kubernetes Namespace - Isolate app from other workloads
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: real-mfa-prod
+  labels:
+    app: real-mfa

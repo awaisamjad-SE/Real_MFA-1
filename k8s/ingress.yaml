@@ -1,0 +1,41 @@
+---
+# Ingress - Routes external traffic with HTTPS (cert-manager required)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: real-mfa-ingress
+  namespace: real-mfa-prod
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - awaisamjad.engineer
+        - www.awaisamjad.engineer
+      secretName: real-mfa-tls
+  rules:
+    - host: awaisamjad.engineer
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: real-mfa-web
+                port:
+                  number: 80
+    - host: www.awaisamjad.engineer
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: real-mfa-web
+                port:
+                  number: 80

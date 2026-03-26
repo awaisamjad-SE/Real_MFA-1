@@ -1,0 +1,40 @@
+---
+# Let's Encrypt ClusterIssuer for Kubernetes cert-manager
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # Let's Encrypt production server
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: awaisamjad.official@gmail.com  # UPDATE THIS WITH YOUR EMAIL ADDRESS
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      # HTTP01 solver (requires Ingress with cert-manager annotations)
+      - http01:
+          ingress:
+            class: nginx
+      # DNS01 solver (optional, if using DNS challenge)
+      # - dns01:
+      #     digitalocean:
+      #       tokenSecretRef:
+      #         name: digitalocean-dns
+      #         key: token
+---
+# Staging issuer for testing (higher rate limits for failure testing)
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: awaisamjad@example.com  # CHANGE THIS TO YOUR EMAIL
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+      - http01:
+          ingress:
+            class: nginx

@@ -21,8 +21,7 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           APP_PATH: ${{ secrets.APP_PATH }}
-          GHCR_PAT: ${{ secrets.GHCR_PAT }}
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_run" ] && [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
             echo "can_deploy=false" >> "$GITHUB_OUTPUT"
@@ -30,7 +29,7 @@ jobs:
             exit 0
           fi
 
-          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$APP_PATH" ] || [ -z "$GHCR_PAT" ] || [ -z "$GHCR_USERNAME" ]; then
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$APP_PATH" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
             echo "can_deploy=false" >> "$GITHUB_OUTPUT"
             echo "Skipping deploy: required secrets are missing."
             exit 0
@@ -45,7 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -56,25 +54,22 @@ jobs:
         id: meta
         shell: bash
         run: |
-          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             SHA_TAG="${{ github.event.workflow_run.head_sha }}"
           else
             SHA_TAG="${{ github.sha }}"
           fi
-          echo "owner_lc=$OWNER_LC" >> "$GITHUB_OUTPUT"
           echo "sha_tag=$SHA_TAG" >> "$GITHUB_OUTPUT"
-          echo "image=ghcr.io/$OWNER_LC/real_mfa:$SHA_TAG" >> "$GITHUB_OUTPUT"
+          echo "image=docker.io/awaisamjad1828/real_mfa:$SHA_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to GHCR
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: awaisamjad1828
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push release image
         uses: docker/build-push-action@v6
@@ -84,7 +79,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.meta.outputs.image }}
-            ghcr.io/${{ steps.meta.outputs.owner_lc }}/real_mfa:latest
+            docker.io/awaisamjad1828/real_mfa:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -103,7 +98,7 @@ jobs:
             set -e
             cd ${{ secrets.APP_PATH }}
             echo "Deploying image: $IMAGE"
-            echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u awaisamjad1828 --password-stdin
             export IMAGE=$IMAGE
             docker compose --env-file .env.docker -f docker-compose.ubuntu.yml pull web celery_worker celery_beat
             docker compose --env-file .env.docker -f docker-compose.ubuntu.yml up -d --remove-orphans
